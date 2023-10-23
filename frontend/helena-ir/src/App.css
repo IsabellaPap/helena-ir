@@ -1,0 +1,77 @@
+/* Global styles */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
+
+/* Container */
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2em;
+  background-color: #ffffff;
+  box-shadow: 0px 0px 5px #ccc;
+  margin: 1em;
+  border-radius: 8px;
+}
+
+/* Questions */
+.question {
+  margin-bottom: 1em;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+}
+
+/* Number Input */
+input[type="number"] {
+  width: 100%;
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Radio Buttons */
+input[type="radio"] {
+  margin-right: 0.5em;
+}
+
+/* Next Button */
+button {
+  padding: 0.5em 1em;
+  background-color: #4CAF50;
+  /* bright green */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.result-container {
+  text-align: center;
+  margin-top: 20px;
+  padding: 20px;
+  border: 2px solid #4CAF50;
+  border-radius: 10px;
+}
+
+.result-message {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.result-detail {
+  font-size: 18px;
+  color: #333;
+}
