@@ -1,8 +1,18 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from enum import Enum
 from pydantic import BaseModel
 from typing import Dict
 from fastapi.middleware.cors import CORSMiddleware
+import asyncpg
+from asyncpg import DataError, UndefinedTableError
+
+async def get_db():
+    conn = await asyncpg.connect(user='user', password='password', database='database', host='host')
+    try:
+        yield conn
+    finally:
+        await conn.close()
+
 
 tags_metadata = [
     {
@@ -14,13 +24,26 @@ tags_metadata = [
         "description": "Various classifications based on input",
     },
 ]
+# enums
 class Gender(str, Enum):
     male = "male"
     female = "female"
 
+class BodyfatClassification(str,Enum):
+    underfat = "underfat"
+    normal = "normal"
+    overweight = "overweight"
+    obese = "obese"
+
+# pydantic input classes
 class BmiInput(BaseModel):
     """ Input format for the bmi calculation. """
     weight_kg:float
+    height_cm:float
+
+class FmiInput(BaseModel):
+    """ Input format for the bmi calculation. """
+    fat_mass_kg:float
     height_cm:float
 
 class Vo2maxInput(BaseModel):
@@ -28,11 +51,18 @@ class Vo2maxInput(BaseModel):
     speed_km_per_h:float
     age_yr:int
 
-class BodyFatInput(BaseModel):
+class RiskScoreInput(BaseModel):
+    """ Input format for the VO2 max calculation. """
+    bmi:float
+    vo2max:int
+
+class BodyFatClassificationInput(BaseModel):
     """ Input format for the body fat classification. """
     age_yr: int
     gender: Gender
     body_fat_percentage: float
+
+
 
 app = FastAPI(openapi_tags=tags_metadata)
 
@@ -44,52 +74,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# cutoff_points_bodyfat: A nested dictionary containing cutoff points for body fat percentages.
-# The keys are Gender enum values (male, female), and the values are dictionaries.
-# These inner dictionaries have age (in years) as keys and another dictionary as values,
-# which contain classifications (underfat, overfat, obese) and their corresponding cutoff values.
-# The reason for this redundant format, is avoiding the alignment issues of making each classification
-# a table column. In future implementations it should be in the database.
-cutoff_points_bodyfat = {
-    Gender.male:  
-                {
-                  5: {"underfat": 12.2, "overfat": 18.6, "obese": 21.4},
-                  6: {"underfat": 12.4, "overfat": 19.5, "obese": 22.7},
-                  7: {"underfat": 12.6, "overfat": 20.4, "obese": 24.1},
-                  8: {"underfat": 12.7, "overfat": 21.3, "obese": 25.5},
-                  9: {"underfat": 12.8, "overfat": 22.2, "obese": 26.8},
-                  10: {"underfat": 12.8, "overfat": 22.8, "obese": 27.9},
-                  11: {"underfat": 12.6, "overfat": 23.0, "obese": 28.3},
-                  12: {"underfat": 12.1, "overfat": 22.7, "obese": 27.9},
-                  13: {"underfat": 11.5, "overfat": 22.0, "obese": 27.0},
-                  14: {"underfat": 10.9, "overfat": 21.3, "obese": 25.9},
-                  15: {"underfat": 10.4, "overfat": 20.7, "obese": 25.0},
-                  16: {"underfat": 10.1, "overfat": 20.3, "obese": 24.3},
-                  17: {"underfat": 9.8, "overfat": 20.1, "obese": 23.9},
-                  18: {"underfat": 9.6, "overfat": 20.1, "obese": 23.6},
-                },
-    Gender.female:
-                {
-                  5: {"underfat": 13.8, "overfat": 21.5, "obese": 24.3},
-                  6: {"underfat": 14.4, "overfat": 23.0, "obese": 26.2},
-                  7: {"underfat": 14.9, "overfat": 24.5, "obese": 28.0},
-                  8: {"underfat": 15.3, "overfat": 26.0, "obese": 29.7},
-                  9: {"underfat": 15.7, "overfat": 27.2, "obese": 31.2},
-                  10: {"underfat": 16.0, "overfat": 28.2, "obese": 32.2},
-                  11: {"underfat": 16.1, "overfat": 28.8, "obese": 32.8},
-                  12: {"underfat": 16.1, "overfat": 29.1, "obese": 33.1},
-                  13: {"underfat": 16.1, "overfat": 29.4, "obese": 33.3},
-                  14: {"underfat": 16.0, "overfat": 29.6, "obese": 33.6},
-                  15: {"underfat": 15.7, "overfat": 29.9, "obese": 33.8},
-                  16: {"underfat": 15.5, "overfat": 30.1, "obese": 34.1},
-                  17: {"underfat": 15.1, "overfat": 30.4, "obese": 34.4},
-                  18: {"underfat": 14.7, "overfat": 30.8, "obese": 34.8},
-                }
-              }
+cutoff_points_bmi = { "healthy": 25, "overweight": 30.0, "obesity": 50.0 }
 
 @app.get("/")
 def read_root():
     return {"message": "Hello, World!"}
+
+# Calculation endpoints
 
 @app.post("/calculate/bmi",tags=["calculation"])
 async def calculate_bmi(input_data: BmiInput) -> Dict[str,float]:
@@ -99,6 +90,14 @@ async def calculate_bmi(input_data: BmiInput) -> Dict[str,float]:
     bmi = input_data.weight_kg/(height_m ** 2)
     return {"bmi" : bmi}
 
+@app.post("/calculate/fmi",tags=["calculation"])
+async def calculate_fmi(input_data: FmiInput) -> Dict[str,float]:
+    """ Function to calculate the FMI index based on height (m) and fat mass (kg). 
+        Takes input in cm and converts to avoid delimeter confusion. """
+    height_m = input_data.height_cm / 100
+    fmi = input_data.fat_mass_kg/(height_m ** 2)
+    return {"fmi" : fmi}
+
 @app.post("/calculate/vo2max",tags=["calculation"])
 async def calculate_vo2max(input_data:Vo2maxInput) -> Dict[str,float]:
     """ Function to calculate the VO2 max based on age (years) and speed (km/h). """
@@ -107,17 +106,47 @@ async def calculate_vo2max(input_data:Vo2maxInput) -> Dict[str,float]:
     vo2max = 31.025 + 3.238 * speed - 3.248 * age + 0.1536 * age * speed
     return {"vo2max" : vo2max}
 
+# @app.post("/calculate/risk-score",tags=["calculation"])
+# async def calculate_risk_score(input_data:RiskScoreInput) -> int:
+
+
+# Classification endpoints
+
 @app.post("/classify/bodyfat",tags=["classification"])
-async def classify_bodyfat(input_data: BodyFatInput) -> Dict[str,str]:
+async def classify_bodyfat(input_data: BodyFatClassificationInput,conn=Depends(get_db)) -> Dict[str,str]:
     """ Function to classify the child based on their age (years), gender, and body fat %. """
     if not (1 <= input_data.body_fat_percentage <= 80):
         raise HTTPException(status_code=400, detail="Invalid input for body fat %. Valid range = [1,80]")
-
     try:
-        age_group = cutoff_points_bodyfat[input_data.gender][input_data.age_yr]
-    except KeyError:
-        raise HTTPException(status_code=400, detail="Invalid input for age in years. Valid range = [5,18]")
+        age_group = await conn.fetchrow("SELECT * FROM body_fat_classification WHERE age=$1 AND gender=$2", input_data.age_yr, input_data.gender)
+        if len(age_group) == 0:
+            raise HTTPException(status_code=400, detail="No matching entries found for the provided age and gender.")
+    except Exception as e:  # Catch all exceptions and log for debugging
+        raise HTTPException(status_code=400, detail=str(e))
     
-    for classification, cutoff in age_group.items():
-        if input_data.body_fat_percentage < cutoff:
+    if input_data.body_fat_percentage <= age_group['underfat_max']:
+        return {"classification": BodyfatClassification.underfat.value}
+    elif input_data.body_fat_percentage <= age_group['normal_max']:
+        return {"classification": BodyfatClassification.normal.value}
+    elif input_data.body_fat_percentage <= age_group['overweight_max']:
+        return {"classification": BodyfatClassification.overweight.value}
+    elif input_data.body_fat_percentage <= age_group['obese_max']:
+        return {"classification": BodyfatClassification.obese.value}
+    else:
+        return {"classification": "Unknown"}
+
+@app.post("/classify/bmi",tags=["classification"])
+async def classify_bmi(bmi: float) -> Dict[str,str]:
+    """ Function to classify the bmi of a child based on specific cut_offs. """    
+    for classification, cutoff in cutoff_points_bmi.items():
+        if bmi < cutoff:
             return {"classification" : classification}
+
+@app.post("/classify/vo2max",tags=["classification"])
+async def classify_vo2max(vo2max: float) -> Dict[str,str]:
+    """ Function to classify the VO2 max of a child based on specific cut_offs. """
+    if vo2max < 37:
+        return {"classification" : "healthy"}
+    else:
+        return {"classification" : "low fitness"}
+

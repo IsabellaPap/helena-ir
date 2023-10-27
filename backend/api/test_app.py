@@ -12,5 +12,10 @@ class TestApp(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"classification": "overfat"})
 
+    def test_classify_bmi(self):
+        response = self.client.post("/classify/bmi", json={"bmi": 25})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"classification": "overweight"})
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const QuestionComponent = ({ prompt, jsonId, inputType, options, onChange }) => {
+const QuestionComponent = ({ prompt, inputType, options, onChange }) => {
   if (inputType === "number") {
     return (
       <div className="question">

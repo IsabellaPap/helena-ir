@@ -16,3 +16,7 @@ services:
       POSTGRES_PASSWORD: helenair
     volumes:
       - ./backend/sql:/docker-entrypoint-initdb.d
+      - pg_data:/var/lib/postgresql/data
+      - ../csv:/backend/sql
+volumes:
+  pg_data:

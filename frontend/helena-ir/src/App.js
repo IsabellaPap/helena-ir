@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import QuestionComponent from './components/QuestionComponent';
 import './App.css';
+import { fetchBmi, fetchBodyFat } from './api';
 
 const questions = [
   { prompt: "What is your gender?", jsonId: "gender", inputType: "multipleChoice", options: ["male", "female"] },
@@ -15,27 +16,31 @@ function App() {
 
   const [apiResponse, setApiResponse] = useState(null);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       console.log("Questionnaire Complete, sending answers:", answers);
       setQuizComplete(true);
-      fetch('http://localhost:8000/classify/bodyfat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(answers)
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log("Server Response: ", data);
-          setApiResponse(data);
-        })
-        .catch((error) => console.error('Error:', error));
+      submitAnswers();
     }
   };
+
+  const submitAnswers = async () => {
+    fetch('http://localhost:8000/classify/bodyfat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(answers)
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Server Response: ", data);
+        setApiResponse(data);
+      })
+      .catch((error) => console.error('Error:', error));
+  }
 
   const handleAnswerChange = (value) => {
     setAnswers({
