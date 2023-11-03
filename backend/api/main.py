@@ -1,18 +1,7 @@
-from fastapi import Depends, FastAPI, HTTPException
-from enum import Enum
-from pydantic import BaseModel
+from fastapi import FastAPI
 from typing import Dict
 from fastapi.middleware.cors import CORSMiddleware
-import asyncpg
-from asyncpg import DataError, UndefinedTableError
-
-async def get_db():
-    conn = await asyncpg.connect(user='user', password='password', database='database', host='host')
-    try:
-        yield conn
-    finally:
-        await conn.close()
-
+import logging
 
 tags_metadata = [
     {
@@ -24,46 +13,9 @@ tags_metadata = [
         "description": "Various classifications based on input",
     },
 ]
-# enums
-class Gender(str, Enum):
-    male = "male"
-    female = "female"
 
-class BodyfatClassification(str,Enum):
-    underfat = "underfat"
-    normal = "normal"
-    overweight = "overweight"
-    obese = "obese"
-
-# pydantic input classes
-class BmiInput(BaseModel):
-    """ Input format for the bmi calculation. """
-    weight_kg:float
-    height_cm:float
-
-class FmiInput(BaseModel):
-    """ Input format for the bmi calculation. """
-    fat_mass_kg:float
-    height_cm:float
-
-class Vo2maxInput(BaseModel):
-    """ Input format for the VO2 max calculation. """
-    speed_km_per_h:float
-    age_yr:int
-
-class RiskScoreInput(BaseModel):
-    """ Input format for the VO2 max calculation. """
-    bmi:float
-    vo2max:int
-
-class BodyFatClassificationInput(BaseModel):
-    """ Input format for the body fat classification. """
-    age_yr: int
-    gender: Gender
-    body_fat_percentage: float
-
-
-
+# initialize FastAPI app with custom OpenAPI tags and configure CORS middleware
+# to allow requests from the frontend running on localhost:3000.
 app = FastAPI(openapi_tags=tags_metadata)
 
 app.add_middleware(
@@ -74,79 +26,64 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-cutoff_points_bmi = { "healthy": 25, "overweight": 30.0, "obesity": 50.0 }
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @app.get("/")
 def read_root():
     return {"message": "Hello, World!"}
 
-# Calculation endpoints
+# calculation endpoints
+from services import calculate_bmi
+from models import BmiInput
 
-@app.post("/calculate/bmi",tags=["calculation"])
-async def calculate_bmi(input_data: BmiInput) -> Dict[str,float]:
-    """ Function to calculate the BMI index based on height (m) and weight (kg). 
-        Takes input in cm and converts to avoid delimeter confusion. """
-    height_m = input_data.height_cm / 100
-    bmi = input_data.weight_kg/(height_m ** 2)
-    return {"bmi" : bmi}
+@app.post("/calculate/bmi", tags=["calculation"])
+async def calculate_bmi_endpoint(input_data: BmiInput) -> Dict[str, float]:
+    bmi = calculate_bmi(input_data.height_cm, input_data.weight_kg)
+    logger.info(f"Calculating BMI for height: {input_data.height_cm} and weight: {input_data.weight_kg}")
+    return {"bmi": bmi}
+
+
+from services import calculate_fmi
+from models import FmiInput
 
 @app.post("/calculate/fmi",tags=["calculation"])
-async def calculate_fmi(input_data: FmiInput) -> Dict[str,float]:
-    """ Function to calculate the FMI index based on height (m) and fat mass (kg). 
-        Takes input in cm and converts to avoid delimeter confusion. """
-    height_m = input_data.height_cm / 100
-    fmi = input_data.fat_mass_kg/(height_m ** 2)
-    return {"fmi" : fmi}
+async def calculate_fmi_endpoint(input_data: FmiInput) -> Dict[str,float]:
+    fmi = calculate_fmi(input_data.height_cm, input_data.weight_kg, input_data.fat_mass_kg, input_data.body_fat_percentage)
+    if input_data.fat_mass_kg is not None:
+        logger.info(f"Calculating FMI for height: {input_data.height_cm} and fat mass: {input_data.fat_mass_kg}")
+    else:
+        logger.info(f"Calculating FMI for height: {input_data.height_cm}, weight: {input_data.weight_kg}, and body fat % {input_data.body_fat_percentage}")
+    return {"fmi": fmi}
+
+from services import calculate_vo2max
+from models import Vo2maxInput
 
 @app.post("/calculate/vo2max",tags=["calculation"])
-async def calculate_vo2max(input_data:Vo2maxInput) -> Dict[str,float]:
+async def calculate_vo2max_endpoint(input_data:Vo2maxInput) -> Dict[str,float]:
     """ Function to calculate the VO2 max based on age (years) and speed (km/h). """
-    speed = input_data.speed_km_per_h
-    age = input_data.age_yr
-    vo2max = 31.025 + 3.238 * speed - 3.248 * age + 0.1536 * age * speed
+    vo2max = calculate_vo2max(input_data.speed_km_per_h, input_data.age_yr)
+    logger.info(f"Calculating VO2 max for speed: {input_data.speed_km_per_h} and age: {input_data.age_yr}")
     return {"vo2max" : vo2max}
 
-# @app.post("/calculate/risk-score",tags=["calculation"])
-# async def calculate_risk_score(input_data:RiskScoreInput) -> int:
+from services import calculate_risk_score
+from models import RiskScoreInput
 
+@app.post("/calculate/risk-score",tags=["calculation"])
+async def calculate_risk_score_endpoint(input_data: RiskScoreInput) -> Dict[str,int]:
+    risk_score = calculate_risk_score(input_data.gender, input_data.vo2max, input_data.bmi, input_data.fmi, input_data.tv_hours)
+    if input_data.gender == "male":
+        logger.info(f"Calculating risk score for gender: {input_data.gender}, vo2max: {input_data.vo2max}, and bmi: {input_data.bmi}")
+    if input_data.gender == "female":
+        logger.info(f"Calculating risk score for gender: {input_data.gender}, vo2max: {input_data.vo2max}, fmi: {input_data.fmi}, and tv hours: {input_data.tv_hours}")
+    return {"risk_score": risk_score}
 
-# Classification endpoints
+# classification endpoints
+from services import classify_risk_score
+from models import RiskClassificationInput
 
-@app.post("/classify/bodyfat",tags=["classification"])
-async def classify_bodyfat(input_data: BodyFatClassificationInput,conn=Depends(get_db)) -> Dict[str,str]:
-    """ Function to classify the child based on their age (years), gender, and body fat %. """
-    if not (1 <= input_data.body_fat_percentage <= 80):
-        raise HTTPException(status_code=400, detail="Invalid input for body fat %. Valid range = [1,80]")
-    try:
-        age_group = await conn.fetchrow("SELECT * FROM body_fat_classification WHERE age=$1 AND gender=$2", input_data.age_yr, input_data.gender)
-        if len(age_group) == 0:
-            raise HTTPException(status_code=400, detail="No matching entries found for the provided age and gender.")
-    except Exception as e:  # Catch all exceptions and log for debugging
-        raise HTTPException(status_code=400, detail=str(e))
-    
-    if input_data.body_fat_percentage <= age_group['underfat_max']:
-        return {"classification": BodyfatClassification.underfat.value}
-    elif input_data.body_fat_percentage <= age_group['normal_max']:
-        return {"classification": BodyfatClassification.normal.value}
-    elif input_data.body_fat_percentage <= age_group['overweight_max']:
-        return {"classification": BodyfatClassification.overweight.value}
-    elif input_data.body_fat_percentage <= age_group['obese_max']:
-        return {"classification": BodyfatClassification.obese.value}
-    else:
-        return {"classification": "Unknown"}
-
-@app.post("/classify/bmi",tags=["classification"])
-async def classify_bmi(bmi: float) -> Dict[str,str]:
-    """ Function to classify the bmi of a child based on specific cut_offs. """    
-    for classification, cutoff in cutoff_points_bmi.items():
-        if bmi < cutoff:
-            return {"classification" : classification}
-
-@app.post("/classify/vo2max",tags=["classification"])
-async def classify_vo2max(vo2max: float) -> Dict[str,str]:
-    """ Function to classify the VO2 max of a child based on specific cut_offs. """
-    if vo2max < 37:
-        return {"classification" : "healthy"}
-    else:
-        return {"classification" : "low fitness"}
-
+@app.post("/classify/risk-score",tags=["classification"])
+async def classify_risk_score_endpoint(input_data: RiskClassificationInput) -> Dict[str,str]:
+    classification = classify_risk_score(input_data.risk_score, input_data.gender)
+    logger.info(f"Classifying risk score for gender: {input_data.gender} and risk score: {input_data.risk_score}")
+    return {"classification": classification}

@@ -1,0 +1,29 @@
+{
+  "bmi_cutoffs": {
+    "healthy": 24.99,
+    "overweight": 29.99,
+    "obesity": 50.0
+  },
+  "fmi_cutoffs": {
+    "underfat": 4.99,
+    "normal": 9,
+    "overweight": 13,
+    "obese": 21
+  },
+  "risk_cutoffs": {
+    "male": {
+      "very low": 10,
+      "low": 12,
+      "medium": 20,
+      "high": 29,
+      "very high":30
+    },
+    "female": {
+      "very low": 14,
+      "low": 19,
+      "medium": 25,
+      "high": 30,
+      "very high": 44
+    }
+  }
+}
