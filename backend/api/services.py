@@ -1,6 +1,6 @@
-from fastapi import HTTPException
-from config import load_config
-from models import Gender
+from .config import load_config
+from .models import Gender
+from .exceptions import InsufficientDataError, InvalidInputError
 
 def calculate_bmi(height_cm: float, weight_kg: float) -> float:
     """ Function to calculate the BMI index based on height (m) and weight (kg). 
@@ -8,27 +8,23 @@ def calculate_bmi(height_cm: float, weight_kg: float) -> float:
     height_m = height_cm / 100
     return round(weight_kg/(height_m ** 2),2)
 
-def calculate_fmi(height_cm: float, weight_kg: float = None, 
-                  fat_mass_kg: float = None, body_fat_percentage: float = None) -> float:
+def calculate_fmi(height_cm: float, weight_kg: float = None, fat_mass_kg: float = None, body_fat_percentage: float = None) -> float:
     """ Function to calculate the FMI index based on height (m) and fat mass (kg) 
         or height (m), weight (kg), and body fat (%). 
         Takes input in cm and converts to avoid delimeter confusion. """
     if fat_mass_kg is not None:
-        # Calculate FMI from fat mass in kg and height
+        # calculate FMI from fat mass in kg and height
         height_m = height_cm / 100
         fmi = fat_mass_kg / (height_m ** 2)
         return round(fmi,2)
     elif body_fat_percentage is not None and weight_kg is not None:
-        # Calculate FMI from body fat percentage, weight, and height
+        # calculate FMI from body fat percentage, weight, and height
         fat_mass_kg = (body_fat_percentage / 100) * weight_kg
         height_m = height_cm / 100
         fmi = fat_mass_kg / (height_m ** 2)
         return round(fmi,2)
     else:
-        raise HTTPException(
-            status_code=400,
-            detail="Insufficient data provided. Please provide either fat mass or both body fat percentage and weight."
-        )
+        raise InsufficientDataError("Insufficient data provided. Please provide the height and fat mass or the height, weight, and bodyfat percentage")
   
 def calculate_vo2max(speed_km_per_h:float, age_yr:int) -> float:
     """ Function to calculate the VO2 max based on age (years) and speed (km/h). """
@@ -45,6 +41,8 @@ def calculate_risk_score(gender: Gender, vo2max: float, bmi: float = None, fmi: 
 
     # classify and calculate risk score
     if gender == Gender.male:
+        if bmi is None:
+            raise InsufficientDataError("For male children, BMI is required to calculate risk score.")
         bmi_cutoffs = config['bmi_cutoffs']
         for classification, cutoff in bmi_cutoffs.items():
             if bmi < cutoff:
@@ -57,7 +55,10 @@ def calculate_risk_score(gender: Gender, vo2max: float, bmi: float = None, fmi: 
             risk_score += calculate_vo2max_risk_score("low fitness",gender)
 
         return risk_score
-    elif gender == Gender.female:   
+    
+    elif gender == Gender.female:
+        if fmi is None:
+            raise InsufficientDataError("For female children, FMI is required to calculate risk score.")   
         fmi_cutoffs = config['fmi_cutoffs']
         for classification, cutoff in fmi_cutoffs.items():
             if fmi < cutoff:
@@ -69,6 +70,8 @@ def calculate_risk_score(gender: Gender, vo2max: float, bmi: float = None, fmi: 
         else:
             risk_score += calculate_vo2max_risk_score("low fitness", gender)
         
+        if tv_hours is None:
+            raise InsufficientDataError("For female children, hours of TV viewed per day is required to calculate risk score.")   
         risk_score += calculate_tv_hours_risk_score(tv_hours)
 
         return risk_score
@@ -109,8 +112,9 @@ def calculate_tv_hours_risk_score(tv_hours: float) -> int:
         return 10
     
 def classify_risk_score(risk_score: int, gender: Gender) -> str:
-  """ Function to classify the risk of early Diabetes 2 or IR based on the overall risk score of the test-taker. """
-  risk_cutoffs = config['risk_cutoffs']
-  for classification, cutoff in risk_cutoffs[gender].items():
-      if risk_score < cutoff:
-          return classification
+    """ Function to classify the risk of early Diabetes 2 or IR based on the overall risk score of the test-taker. """
+    risk_cutoffs = config['risk_cutoffs']
+    for classification, cutoff in risk_cutoffs[gender].items():
+        if risk_score < cutoff:
+            return classification
+    raise InvalidInputError("The risk score you provided is not valid. Check the config file for the specified cut-offs.")
