@@ -32,7 +32,7 @@ def calculate_vo2max(speed_km_per_h:float, age_yr:int) -> float:
     return round(vo2max, 2)
 
 # load config for cutoff points
-config = load_config('./config/config.json')
+config = load_config('./api/config/config.json')
 
 def calculate_risk_score(gender: Gender, vo2max: float, bmi: float = None, fmi: float = None, tv_hours: float = None) -> int:
     """ Function to calculate the overall risk score of the test-taker. """

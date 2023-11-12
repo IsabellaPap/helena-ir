@@ -17,8 +17,8 @@ class FmiInput(BaseModel):
     """ Input format for the bmi calculation. """
     height_cm:float = Field( ..., gt=70, lt=200, description="Height in centimeters")
     weight_kg:Optional[float] = Field( None, gt=25, lt=100, description="Weight in kilograms")
-    fat_mass_kg: Optional[float] = Field( None, gt=0.5, lt=120, description="Fat mass in kilograms")
-    body_fat_percentage: Optional[float] = Field( None, gt=2, lt=80, description="Body fat percentage")
+    fat_mass_kg: Optional[float] = Field( None, ge=0, lt=120, description="Fat mass in kilograms")
+    body_fat_percentage: Optional[float] = Field( None, ge=0, lt=80, description="Body fat percentage")
 
 class Vo2maxInput(BaseModel):
     """ Input format for the VO2 max calculation. """

@@ -1,77 +1,63 @@
 import React, { useState } from 'react';
-import QuestionComponent from './components/QuestionComponent';
-import './App.css';
-import { fetchBmi, fetchBodyFat } from './api';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import GenderSelection from './components/GenderSelection';
+import Questionnaire from './components/Questionnaire';
+import Results from './components/Results';
 
-const questions = [
-  { prompt: "What is your gender?", jsonId: "gender", inputType: "multipleChoice", options: ["male", "female"] },
-  { prompt: "What is your age in years?", jsonId: "age_yr", inputType: "number" },
-  { prompt: "What is your body fat percentage?", jsonId: "body_fat_percentage", inputType: "number" },
-];
+const App = () => {
+  const [gender, setGender] = useState(null);
+  const [result, setResult] = useState(null);
 
-function App() {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [quizComplete, setQuizComplete] = useState(false);
 
-  const [apiResponse, setApiResponse] = useState(null);
+  const handleGenderSelect = (selectedGender) => {
+    setGender(selectedGender);
+  };
 
-  const handleNext = async () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      console.log("Questionnaire Complete, sending answers:", answers);
-      setQuizComplete(true);
-      submitAnswers();
+  const handleSubmit = async (answers) => {
+    try {
+      // Send answers to the first API endpoint and get the score
+      const scoreResponse = await fetch('http://localhost:8000/calculate/risk-score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(answers),
+      });
+
+      const scoreData = await scoreResponse.json();
+      const score = Number(scoreData.risk_score);
+
+      // Send score to the second API endpoint and get the classification
+      const classificationResponse = await fetch('http://localhost:8000/classify/risk-score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ "risk_score": score, "gender": gender }),
+      });
+
+      const classificationData = await classificationResponse.json();
+      const classification = classificationData.classification;
+
+      // Set the result state to display score and classification
+      setResult({ score, classification });
+    } catch (error) {
+      console.error('Error:', error);
     }
   };
 
-  const submitAnswers = async () => {
-    fetch('http://localhost:8000/classify/bodyfat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(answers)
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log("Server Response: ", data);
-        setApiResponse(data);
-      })
-      .catch((error) => console.error('Error:', error));
-  }
-
-  const handleAnswerChange = (value) => {
-    setAnswers({
-      ...answers,
-      [currentQuestion.jsonId]: value,
-    });
-  };
-
-  const currentQuestion = questions[currentQuestionIndex];
-
   return (
-    <div className="App">
-      {quizComplete ? (
-        <div className="result-container">
-          <p className="result-message">Test Complete!</p>
-          <p className="result-detail">
-            {apiResponse ? `Your classification is: ${apiResponse.classification}` : null}
-          </p>
-        </div>
-      ) : (
-        <>
-      <QuestionComponent
-        prompt={currentQuestion.prompt}
-        inputType={currentQuestion.inputType}
-        options={currentQuestion.options}
-        onChange={handleAnswerChange}
-      />
-      <button onClick={handleNext}>Next</button>
-        </>
-      )}
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" exact element={<HomePage />} />
+          <Route path="/gender-selection" element={<GenderSelection onGenderSelect={handleGenderSelect} />} />
+          <Route path="/questionnaire" element={<Questionnaire gender={gender} onSubmit={handleSubmit} />} />
+          <Route path="/results" element={result ? <Results score={result.score} classification={result.classification} /> : <Navigate to="/" />} />
+        </Routes>
+      </div>
+    </Router>
   );
 };
 
