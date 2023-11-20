@@ -10,14 +10,14 @@ class Gender(str, Enum):
 # pydantic input classes
 class BmiInput(BaseModel):
     """ Input format for the bmi calculation. """
-    weight_kg:float = Field( ..., gt=25, lt=100, description="Weight in kilograms")
+    weight_kg:float = Field( ..., gt=25, lt=300, description="Weight in kilograms")
     height_cm:float = Field( ..., gt=70, lt=200, description="Height in centimeters")
 
 class FmiInput(BaseModel):
     """ Input format for the bmi calculation. """
     height_cm:float = Field( ..., gt=70, lt=200, description="Height in centimeters")
-    weight_kg:Optional[float] = Field( None, gt=25, lt=100, description="Weight in kilograms")
-    fat_mass_kg: Optional[float] = Field( None, ge=0, lt=120, description="Fat mass in kilograms")
+    weight_kg:Optional[float] = Field( None, gt=25, lt=300, description="Weight in kilograms")
+    fat_mass_kg: Optional[float] = Field( None, ge=0, lt=0.8*300, description="Fat mass in kilograms")
     body_fat_percentage: Optional[float] = Field( None, ge=0, lt=80, description="Body fat percentage")
 
 class Vo2maxInput(BaseModel):
