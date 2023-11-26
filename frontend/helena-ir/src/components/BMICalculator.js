@@ -17,6 +17,10 @@ const BMICalculator = ({ onBMICalculated }) => {
 
     setValidationErrors({ ...validationErrors, [type]: isValid ? '' : errorMessage });
   };
+
+  const disableButton = () => {
+    return Object.values(validationErrors).some(error => error !== '');
+  };
   
   function calculateBMI() {
 
@@ -66,7 +70,7 @@ const BMICalculator = ({ onBMICalculated }) => {
       />
       {validationErrors.height && <div className="error-message">{validationErrors.height}</div>}
 
-      <button onClick={calculateBMI}>Calculate BMI</button>
+      <button onClick={calculateBMI} disabled={disableButton()}>Calculate BMI</button>
     </div>
   );
 };

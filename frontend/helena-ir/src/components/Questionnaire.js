@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import BMICalculator from './BMICalculator';
 import FMICalculator from './FMICalculator';
 import VO2maxCalculator from './VO2maxCalculator';
+import { validateInput } from './validationUtil'; // Import the validation utility
 
 const Questionnaire = ({ gender, onSubmit }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  
+  const [validationErrors, setValidationErrors] = useState({});
+
   const maleQuestions = [
     {
       prompt: "What is your VO2 max score?",
@@ -53,12 +55,20 @@ const Questionnaire = ({ gender, onSubmit }) => {
       ...answers,
       bmi: bmiValue,
     });
+    setValidationErrors({
+      ...validationErrors,
+      bmi: '',
+    });
   };
 
   const handleFMICalculated = (fmiValue) => {
     setAnswers({
       ...answers,
       fmi: fmiValue,
+    });
+    setValidationErrors({
+      ...validationErrors,
+      fmi: '',
     });
   };
 
@@ -67,19 +77,44 @@ const Questionnaire = ({ gender, onSubmit }) => {
       ...answers,
       vo2max: vo2maxValue,
     });
+    setValidationErrors({
+      ...validationErrors,
+      vo2max: '',
+    });
   };
 
   
   
-  const handleAnswerChange = (value, isNumeric, jsonId) => {
-    const formattedValue = isNumeric ? Number(value) : value;
+  const handleAnswerChange = (value, jsonId) => {
+    const formattedValue = Number(value);
+    let isValid = true;
+    let errorMessage = '';
+
+    const validation = validateInput(value, jsonId);
+    isValid = validation.isValid;
+    errorMessage = validation.errorMessage;
+
     setAnswers({
       ...answers,
       [jsonId]: formattedValue,
     });
+
+    setValidationErrors({
+      ...validationErrors,
+      [jsonId]: isValid ? '' : errorMessage,
+    });
   };
 
-  const handleNext = () => {
+  const disableButton = () => {
+    const errorsPresent = Object.values(validationErrors).some(error => error !== '');
+  
+    const currentAnswer = answers[currentQuestion.jsonId];
+    const isAnswerEmpty = currentAnswer === undefined || currentAnswer === '';
+  
+    return errorsPresent || isAnswerEmpty;
+  };
+
+  const handleNext = async () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
@@ -87,8 +122,12 @@ const Questionnaire = ({ gender, onSubmit }) => {
         ...answers,
         gender: gender,
       };
-      onSubmit(finalAnswers);
-      navigate('/results');
+      try {
+        await onSubmit(finalAnswers);
+        navigate('/results');
+      } catch (error) {
+        console.error('Error during onSubmit:', error);
+      }
     }
   };
 
@@ -118,11 +157,14 @@ const Questionnaire = ({ gender, onSubmit }) => {
       <Question
         prompt={currentQuestion.prompt}
         value={answers[currentQuestion.jsonId] || ''}
-        onChange={handleAnswerChange}
+        onChange={(value) => handleAnswerChange(value, currentQuestion.jsonId)}
         jsonId={currentQuestion.jsonId}
         additionalContent={getAdditionalContent()}
       />
-      <button onClick={handleNext}>Next</button>
+      {validationErrors[currentQuestion.jsonId] && (
+        <div className="error-message">{validationErrors[currentQuestion.jsonId]}</div>
+      )}
+      <button onClick={handleNext} disabled={disableButton()}>Next</button>
     </div>
   );
 };

@@ -19,6 +19,10 @@ const VO2maxCalculator = ({ onVO2maxCalculated }) => {
     setValidationErrors({ ...validationErrors, [type]: isValid ? '' : errorMessage });
   };
 
+  const disableButton = () => {
+    return Object.values(validationErrors).some(error => error !== '');
+  };
+
   function calculateVO2max() {
 
     // Convert weight and height to numbers, if they are not already
@@ -68,7 +72,7 @@ const VO2maxCalculator = ({ onVO2maxCalculated }) => {
       />
       {validationErrors.age && <div className="error-message">{validationErrors.age}</div>}
 
-      <button onClick={calculateVO2max}>Calculate VO2 max</button>
+      <button onClick={calculateVO2max} disabled={disableButton()}>Calculate VO2 max</button>
     </div>
   );
 };
