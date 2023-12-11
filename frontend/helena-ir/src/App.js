@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import HomePage from './components/HomePage';
-import GenderSelection from './components/GenderSelection';
+import HomePage from './components/HomePage/HomePage';
+import GenderSelection from './components/GenderSelection/GenderSelection';
 import Questionnaire from './components/Questionnaire';
 import Results from './components/Results';
+import './App.css';
 
 const App = () => {
   const [gender, setGender] = useState(null);
