@@ -1,0 +1,42 @@
+.riskScore {
+  background-color: #fff;
+  border: 1px solid #FF6B6B;
+  border-radius: 25px;
+  padding: 10px 20px;
+  margin: 2vh 0;
+  font-size: 1.2rem;
+  width: 80%;
+}
+
+.riskClassification {
+  background-color: #fff;
+  border-radius: 25px;
+  border: 1px solid #A49DEA;
+  padding: 10px 20px;
+  margin-top: 2vh;
+  margin-bottom: 5vh;
+  font-size: 1.2rem;
+  width: 80%;
+}
+
+.stripTop {
+  align-items: flex-start;
+  left: 2%;
+  height: 30vh;
+  width: 50%;
+  margin: 0;
+  padding: 0;
+  background: url('../../assets/resultsTop.png') no-repeat top left;
+  background-size: contain;
+}
+
+.stripBottom {
+  position: absolute;
+  bottom: 0;
+  height: 20vh;
+  width: 100%;
+  background-size: cover;
+  z-index: 10;
+  background: url('../../assets/resultsBottom.png') no-repeat bottom right;
+  background-size: contain;
+}

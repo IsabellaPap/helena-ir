@@ -18,9 +18,9 @@ const GenderSelection = ({ onGenderSelect }) => {
   };
 
   return (
-    <div className={`$styles.container flex-column`}>
+    <div className={`flex-column ${styles.container}`}>
       <div className={styles.dnaStripTop}></div>
-      <h1 className={styles.heading}>What is your <span className={styles.genderWord}>gender</span>?</h1>
+      <h1>What is your <span className={styles.genderWord}>gender</span>?</h1>
       <div className={styles.buttonContainer}>
         <button
           className={`${styles.genderButton} ${selectedGender === 'female' ? styles.selected : ''}`}
@@ -35,7 +35,7 @@ const GenderSelection = ({ onGenderSelect }) => {
           Male
         </button>
       </div>
-      <button className={styles.nextButton} onClick={handleNextClick}>Next</button>
+      <button className={`nextButton ${styles.customColor}`} onClick={handleNextClick}>Next</button>
       <div className={styles.dnaStripBottom}></div>
     </div>
   );

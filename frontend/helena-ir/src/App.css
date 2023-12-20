@@ -1,8 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap');
 
 /* Container */
 .App {
   position: relative;
-  background-color: #FFF3E4;
+  background-color: #F1F1E7;
   min-height: 100vh;
   min-width: 100vw;
   margin: 0;
@@ -21,10 +22,10 @@ body {
 button {
   background-color: transparent;
   border-radius: 25px;
-  border: 1px solid;
+  border: 2px solid;
   cursor: pointer;
   font-family: 'Manrope';
-  font-weight: 400;
+  font-weight: 600;
   color: #0E194D;
 }
 
@@ -44,10 +45,59 @@ label {
   font-weight: bold;
 }
 
-input {
-  border: 1px solid #ccc;
-  border-radius: 5px;
+.mainInput {
+  border: 1px solid;
+  border-radius: 10px;
   padding: 10px;
   width: 80%;
-  margin: 10px 0;
+  height: 60px;
+}
+
+.calcInput {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 5px;
+  width: 80%;
+  height: 30px;
+  margin-bottom: 8%;
+}
+
+.calc-box {
+  margin-top: 5%;
+  height: 210px;
+  overflow: hidden;
+}
+
+.calcButton {
+  margin-top: 10%;
+}
+
+h1 {
+  margin: 10% 10%;
+  font-size: 30px;
+  font-family: 'Manrope';
+  font-weight: 800;
+  color: #343a40;
+  text-align: center;
+}
+
+.nextButton {
+  color: white;
+  font-size: larger;
+  font-weight: 600;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: opacity 0.1s;
+  width: 80%;
+  height: 40px;
+  margin-top: 5%;
+}
+
+.nextButton:hover {
+  opacity: 0.8;
+}
+
+.error-message {
+  color: rgba(243, 31, 31, 0.941);
 }

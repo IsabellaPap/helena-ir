@@ -53,8 +53,8 @@ const VO2maxCalculator = ({ onVO2maxCalculated }) => {
       });
   }
   return (
-    <div>
-      <input
+    <div className={`flex-column calc-box`}>
+      <input className={`calcInput`}
         type="number"
         placeholder="Speed (k/h)"
         value={speed}
@@ -63,7 +63,7 @@ const VO2maxCalculator = ({ onVO2maxCalculated }) => {
       />
       {validationErrors.speed && <div className="error-message">{validationErrors.speed}</div>}
 
-      <input
+      <input className={`calcInput`}
         type="number"
         placeholder="Age (years)"
         value={age}
@@ -72,7 +72,7 @@ const VO2maxCalculator = ({ onVO2maxCalculated }) => {
       />
       {validationErrors.age && <div className="error-message">{validationErrors.age}</div>}
 
-      <button onClick={calculateVO2max} disabled={disableButton()}>Calculate VO2 max</button>
+      <button className={`calcButton`} onClick={calculateVO2max} disabled={disableButton()}>Calculate VO2 max</button>
     </div>
   );
 };

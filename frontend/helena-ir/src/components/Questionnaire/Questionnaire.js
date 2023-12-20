@@ -1,10 +1,26 @@
 import React, { useState } from 'react';
-import Question from './Question';
+import Question from '../Question/Question';
 import { useNavigate } from 'react-router-dom';
-import BMICalculator from './BMICalculator';
-import FMICalculator from './FMICalculator';
-import VO2maxCalculator from './VO2maxCalculator';
-import { validateInput } from './validationUtil'; // Import the validation utility
+import BMICalculator from '../BMICalculator';
+import FMICalculator from '../FMICalculator';
+import VO2maxCalculator from '../VO2maxCalculator';
+import { validateInput } from '../validationUtil'; // Import the validation utility
+import styles from './Questionnaire.module.css';
+
+const signatureStyles = {
+  vo2max: {
+    primary: '#9CDEA2',
+  },
+  bmi: {
+    primary: '#FF9255',
+  },
+  fmi: {
+    primary: '#FF9255',
+  },
+  tv_hours: {
+    primary: '#A49DEA',
+  },
+};
 
 const Questionnaire = ({ gender, onSubmit }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -110,7 +126,7 @@ const Questionnaire = ({ gender, onSubmit }) => {
   
     const currentAnswer = answers[currentQuestion.jsonId];
     const isAnswerEmpty = currentAnswer === undefined || currentAnswer === '';
-  
+    
     return errorsPresent || isAnswerEmpty;
   };
 
@@ -136,35 +152,48 @@ const Questionnaire = ({ gender, onSubmit }) => {
       case 'bmi':
         return showBMICalculator ? 
           <BMICalculator onBMICalculated={handleBMICalculated} /> :
-          <button onClick={() => setShowBMICalculator(true)}>Don't know? Calculate</button>;
+          <div className={`calc-box`}>
+            <span>Don't know? </span>
+            <button onClick={() => setShowBMICalculator(true)}>Calculate</button>
+          </div>;
       case 'vo2max':
         return showVO2maxCalculator ?
           <VO2maxCalculator onVO2maxCalculated={handleVO2maxCalculated} /> :
-          <button onClick={() => setShowVO2maxCalculator(true)}>Don't know? Calculate</button>;
+          <div className={`calc-box`}>
+            <span>Don't know? </span>
+            <button onClick={() => setShowVO2maxCalculator(true)}>Calculate</button>
+          </div>;
       case 'fmi':
           return showFMICalculator ?
           <FMICalculator onFMICalculated={handleFMICalculated}  /> :
-          <button onClick={() => setShowFMICalculator(true)}>Don't know? Calculate</button>;
+            <div className={`calc-box`}>
+              <span>Don't know? </span>
+              <button onClick={() => setShowFMICalculator(true)}>Calculate</button>
+            </div>;
       default:
         return null;
     }
   };
   
   const currentQuestion = questions[currentQuestionIndex];
+  const currentStyle = signatureStyles[currentQuestion.jsonId];
 
   return (
-    <div>
+    <div className={`flex-column ${styles.container}`} style={{ '--image-top': `url(${currentStyle.imageTop})` }}>
+      <div className={`${styles.stripTop} ${styles[`${currentQuestion.jsonId}Top`]}`}></div>
       <Question
         prompt={currentQuestion.prompt}
         value={answers[currentQuestion.jsonId] || ''}
         onChange={(value) => handleAnswerChange(value, currentQuestion.jsonId)}
         jsonId={currentQuestion.jsonId}
+        signatureColor={currentStyle.primary}
         additionalContent={getAdditionalContent()}
       />
       {validationErrors[currentQuestion.jsonId] && (
-        <div className="error-message">{validationErrors[currentQuestion.jsonId]}</div>
+        <div className={`error-message`}>{validationErrors[currentQuestion.jsonId]}</div>
       )}
-      <button onClick={handleNext} disabled={disableButton()}>Next</button>
+      <button className={`nextButton`} style={{ background: currentStyle.primary }} onClick={handleNext} disabled={disableButton()}>Next</button>
+      <div className={`${styles.stripBottom} ${styles[`${currentQuestion.jsonId}Bottom`]}`}></div>
     </div>
   );
 };

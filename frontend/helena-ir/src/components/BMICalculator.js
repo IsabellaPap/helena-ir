@@ -51,13 +51,13 @@ const BMICalculator = ({ onBMICalculated }) => {
     }
 
   return (
-    <div>
+    <div className={`flex-column calc-box`}>
       <input
         type="number"
         placeholder="Weight (kg)"
         value={weight}
         onChange={(e) => handleInputChange(e.target.value, 'weight')}
-        onBlur={(e) => handleInputChange(e.target.value, 'weight')} // Optional: Validate on blur
+        onBlur={(e) => handleInputChange(e.target.value, 'weight')} 
       />
       {validationErrors.weight && <div className="error-message">{validationErrors.weight}</div>}
 
@@ -66,7 +66,7 @@ const BMICalculator = ({ onBMICalculated }) => {
         placeholder="Height (cm)"
         value={height}
         onChange={(e) => handleInputChange(e.target.value, 'height')}
-        onBlur={(e) => handleInputChange(e.target.value, 'height')} // Optional: Validate on blur
+        onBlur={(e) => handleInputChange(e.target.value, 'height')} 
       />
       {validationErrors.height && <div className="error-message">{validationErrors.height}</div>}
 

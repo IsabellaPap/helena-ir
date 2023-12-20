@@ -74,8 +74,8 @@ const FMICalculator = ({ onFMICalculated }) => {
       });
   }
   return (
-    <div>
-      <input
+    <div className={`flex-column calc-box`}>
+      <input className={`calcInput`}
         type="number"
         placeholder="Body Fat (%)"
         value={bodyfat}
@@ -83,7 +83,7 @@ const FMICalculator = ({ onFMICalculated }) => {
         onBlur={(e) => handleInputChange(e.target.value, 'bodyfat', true)} 
       />
       {validationErrors.bodyfat && <div className="error-message">{validationErrors.bodyfat}</div>}
-      <input
+      <input className={`calcInput`}
         type="number"
         placeholder="Weight (kg)"
         value={weight}
@@ -91,7 +91,7 @@ const FMICalculator = ({ onFMICalculated }) => {
         onBlur={(e) => handleInputChange(e.target.value, 'weight', true)} 
       />
       {validationErrors.weight && <div className="error-message">{validationErrors.weight}</div>}
-      <input
+      <input className={`calcInput`}
         type="number"
         placeholder="Fat Mass (kg)"
         value={fatMass}
@@ -99,7 +99,7 @@ const FMICalculator = ({ onFMICalculated }) => {
         onBlur={(e) => handleInputChange(e.target.value, 'fatmass', true)}
       />
       {validationErrors.fatmass && <div className="error-message">{validationErrors.fatmass}</div>}
-      <input
+      <input className={`calcInput`}
         type="number"
         placeholder="Height (cm)"
         value={height}
