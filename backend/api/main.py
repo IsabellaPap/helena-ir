@@ -1,8 +1,13 @@
-from fastapi import FastAPI, HTTPException
-from typing import Dict
+from datetime import timedelta
+from fastapi import FastAPI, HTTPException, Depends, status
+from typing import Dict, Annotated
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+
 import logging
 from .exceptions import InsufficientDataError, InvalidInputError
+from .models import Token, User
+from . import auth
 
 tags_metadata = [
     {
@@ -13,7 +18,12 @@ tags_metadata = [
         "name": "classification",
         "description": "Various classifications based on input",
     },
+    {
+        "name": "authentication",
+        "description": "Authentication for users"
+    },
 ]
+
 
 # initialize FastAPI app with custom OpenAPI tags and configure CORS middleware
 # to allow requests from the frontend running on localhost:3000.
@@ -37,6 +47,37 @@ def read_root():
 # calculation endpoints
 from .services import calculate_bmi
 from .models import BmiInput
+
+@app.post("/token", response_model=Token)
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+):
+    user = auth.authenticate_user(auth.fake_users_db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/users/me/", response_model=User)
+async def read_users_me(
+    current_user: Annotated[User, Depends(auth.get_current_active_user)]
+):
+    return current_user
+
+
+@app.get("/users/me/items/")
+async def read_own_items(
+    current_user: Annotated[User, Depends(auth.get_current_active_user)]
+):
+    return [{"item_id": "Foo", "owner": current_user.email}]
 
 @app.post("/calculate/bmi", tags=["calculation"])
 async def calculate_bmi_endpoint(input_data: BmiInput) -> Dict[str, float]:

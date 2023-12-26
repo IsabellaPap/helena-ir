@@ -131,6 +131,7 @@ ENV/
 env.bak/
 venv.bak/
 helenair/
+.python-version
 
 # Spyder project settings
 .spyderproject

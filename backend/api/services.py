@@ -2,6 +2,7 @@ from .config import load_config
 from .models import Gender
 from .exceptions import InsufficientDataError, InvalidInputError
 
+# main functionality (risk assessment)
 def calculate_bmi(height_cm: float, weight_kg: float) -> float:
     """ Function to calculate the BMI index based on height (m) and weight (kg). 
         Takes input in cm and converts to avoid delimeter confusion. """
