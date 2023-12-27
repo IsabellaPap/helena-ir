@@ -1,6 +1,11 @@
 version: '3'
 services:
   backend:
+    environment:
+      POSTGRES_USER: isabella
+      POSTGRES_PASSWORD: helenair
+      POSTGRES_DB: helenair
+      DB_HOST: db
     build: 
       context: ./backend
       dockerfile: Dockerfile
@@ -27,6 +32,5 @@ services:
     volumes:
       - ./backend/sql:/docker-entrypoint-initdb.d
       - pg_data:/var/lib/postgresql/data
-      - ../csv:/backend/sql
 volumes:
   pg_data:

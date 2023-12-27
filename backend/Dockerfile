@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12
 
 # Set working directory inside the container
 WORKDIR /app
@@ -9,6 +9,6 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy the current directory contents into the container at /app
 COPY ./api /app
+COPY start.sh /app/start.sh
 
-# Run your API
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/start.sh"]
