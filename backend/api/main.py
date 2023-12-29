@@ -6,12 +6,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 import logging
-from helpers.exceptions import InsufficientDataError, InvalidInputError
+from .helpers.exceptions import InsufficientDataError, InvalidInputError
 from . import models as md
 from .services import auth
 from .services import services as srv
-from .database import crud, schemas
-from database.database import SessionLocal
+from .database.database import SessionLocal
+from .database.crud import create_user
 
 tags_metadata = [
     {
@@ -56,9 +56,9 @@ def get_db():
 def read_root():
     return {"message": "Hello, World!"}
 
-@router.post("/users/", response_model=schemas.User)
+@router.post("/users/", response_model=md.UserBase)
 def create_user_endpoint(user: md.UserCreate, db: Session = Depends(get_db)):
-    return crud.create_user(db=db, user=user)
+    return create_user(db=db, user=user)
 
 @app.post("/token", response_model=md.Token)
 async def login_for_access_token(
@@ -78,16 +78,14 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/users/me/", response_model=schemas.User)
-async def read_users_me(
-    current_user: Annotated[schemas.User, Depends(auth.get_current_active_user)]
-):
+@app.get("/users/me/", response_model=md.UserBase)
+async def read_users_me(current_user: Annotated[md.UserBase, Depends(auth.get_current_active_user)]):
     return current_user
 
 
 @app.get("/users/me/items/")
 async def read_own_items(
-    current_user: Annotated[schemas.User, Depends(auth.get_current_active_user)]
+    current_user: Annotated[md.UserBase, Depends(auth.get_current_active_user)]
 ):
     return [{"item_id": "Foo", "owner": current_user.email}]
 

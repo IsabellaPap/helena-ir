@@ -15,6 +15,12 @@ class UserCreate(BaseModel):
     password: str
     full_name: str
 
+class UserBase(BaseModel):
+    email: EmailStr
+    full_name: str
+    disabled: bool
+
+
 # enums
 class Gender(str, Enum):
     male = "male"

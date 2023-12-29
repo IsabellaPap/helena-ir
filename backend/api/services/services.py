@@ -1,6 +1,6 @@
-from .config import load_config
-from .models import Gender
-from .exceptions import InsufficientDataError, InvalidInputError
+from ..helpers.config import load_config
+from ..models import Gender
+from ..helpers.exceptions import InsufficientDataError, InvalidInputError
 
 # main functionality (risk assessment)
 def calculate_bmi(height_cm: float, weight_kg: float) -> float:
