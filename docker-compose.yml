@@ -29,8 +29,3 @@ services:
       POSTGRES_DB: helenair
       POSTGRES_USER: isabella
       POSTGRES_PASSWORD: helenair
-    volumes:
-      - ./backend/sql:/docker-entrypoint-initdb.d
-      - pg_data:/var/lib/postgresql/data
-volumes:
-  pg_data:
