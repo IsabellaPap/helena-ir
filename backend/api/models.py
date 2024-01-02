@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 from typing import Optional
 from enum import Enum
 
@@ -8,15 +8,15 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    email: EmailStr | None = None
+    email: str | None = None
 
 class UserCreate(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     full_name: str
 
 class UserBase(BaseModel):
-    email: EmailStr
+    email: str
     full_name: str
     disabled: bool
 
