@@ -54,11 +54,11 @@ def get_db():
 def read_root():
     return {"message": "Hello, World!"}
 
-@app.post("/users/create/", response_model=md.UserBase)
+@app.post("/users/create/", response_model=md.UserBase, tags=["authentication"])
 def create_user_endpoint(user: md.UserCreate, db: Session = Depends(get_db)):
     return create_user(db=db, user=user)
 
-@app.post("/token", response_model=md.Token)
+@app.post("/token", response_model=md.Token, tags=["authentication"])
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db)
@@ -75,6 +75,12 @@ async def login_for_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/logout", tags=["classification"])
+async def logout(user: md.User, db: Session = Depends(get_db)):
+    # Invalidate the refresh token (TODO)
+    auth.invalidate_refresh_token(db, user)
+    return {"message": "User logged out successfully"}
 
 # calculation endpoints
 @app.post("/calculate/bmi", tags=["calculation"])
