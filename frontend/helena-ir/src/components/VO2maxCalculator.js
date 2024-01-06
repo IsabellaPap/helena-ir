@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { validateInput } from './validationUtil';
+import { fetchVo2max } from '../api';
 
 const VO2maxCalculator = ({ onVO2maxCalculated }) => {
 
@@ -30,28 +31,22 @@ const VO2maxCalculator = ({ onVO2maxCalculated }) => {
     const formattedAge = Number(age);
 
     // API call to calculate VO2 max
-    fetch('http://localhost:8000/calculate/vo2max', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ speed_km_per_h: formattedSpeed, age_yr: formattedAge }),
+    fetchVo2max(formattedSpeed, formattedAge).then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        onVO2maxCalculated(data.vo2max);
-  
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert(`Error: ${error.message}`);
-      });
+    .then(data => {
+      onVO2maxCalculated(data.vo2max);
+
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert(`Error: ${error.message}`);
+    });
   }
+  
   return (
     <div className={`flex-column calc-box`}>
       <input className={`calcInput`}

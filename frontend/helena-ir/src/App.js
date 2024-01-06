@@ -5,6 +5,9 @@ import GenderSelection from './components/GenderSelection/GenderSelection';
 import Questionnaire from './components/Questionnaire/Questionnaire';
 import Results from './components/Results/Results';
 import './App.css';
+import Login from './components/Login';
+import Registration from './components/Registration';
+import { calculateRiskScore, classifyRiskScore } from './api';
 
 const App = () => {
   const [gender, setGender] = useState(null);
@@ -17,42 +20,31 @@ const App = () => {
 
   const handleSubmit = async (answers) => {
     try {
-      // Send answers to the first API endpoint and get the score
-      const scoreResponse = await fetch('http://localhost:8000/calculate/risk-score', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(answers),
-      });
-
-      const scoreData = await scoreResponse.json();
+      const scoreData = await calculateRiskScore(answers);
       const score = Number(scoreData.risk_score);
 
-      // Send score to the second API endpoint and get the classification
-      const classificationResponse = await fetch('http://localhost:8000/classify/risk-score', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ "risk_score": score, "gender": gender }),
-      });
-
-      const classificationData = await classificationResponse.json();
+      const classificationData = await classifyRiskScore(score, gender);
       const classification = classificationData.classification;
 
-      // Set the result state to display score and classification
       setResult({ score, classification });
     } catch (error) {
       console.error('Error:', error);
     }
+    
   };
+
+      // Set the result state to display score and classification
+
+
+      
 
   return (
     <Router>
       <div className="App">
         <Routes>
           <Route path="/" exact element={<HomePage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Registration />} />
           <Route path="/gender-selection" element={<GenderSelection onGenderSelect={handleGenderSelect} />} />
           <Route path="/questionnaire" element={<Questionnaire gender={gender} onSubmit={handleSubmit} />} />
           <Route path="/results" element={result ? <Results score={result.score} classification={result.classification} /> : <Navigate to="/" />} />

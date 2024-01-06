@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { validateInput } from './validationUtil';
+import { fetchFmi } from '../api';
 
 const FMICalculator = ({ onFMICalculated }) => {
   const [weight, setWeight] = useState('');
@@ -29,7 +30,7 @@ const FMICalculator = ({ onFMICalculated }) => {
     const errorsPresent = Object.values(validationErrors).some(error => error !== '');
 
     const missingInput = !fatMass && (!weight || !bodyfat);
-    const isZero = (fatMass == 0 && weight == 0 && bodyfat == 0);
+    const isZero = (fatMass === 0 && weight === 0 && bodyfat === 0);
     return errorsPresent || missingInput || isZero;
   };
 
@@ -52,27 +53,21 @@ const FMICalculator = ({ onFMICalculated }) => {
     }
 
     // API call to calculate FMI
-    fetch('http://localhost:8000/calculate/fmi', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
+    fetchFmi(requestBody).then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        onFMICalculated(data.fmi);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert(`Error: ${error.message}`);
-      });
+    .then(data => {
+      onFMICalculated(data.fmi);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert(`Error: ${error.message}`);
+    });
   }
+
   return (
     <div className={`flex-column calc-box`}>
       <input className={`calcInput`}

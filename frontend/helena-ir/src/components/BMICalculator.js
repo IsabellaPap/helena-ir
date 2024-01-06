@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { validateInput } from './validationUtil';
+import { fetchBmi } from '../api';
 
 const BMICalculator = ({ onBMICalculated }) => {
   const [weight, setWeight] = useState('');
@@ -28,20 +29,7 @@ const BMICalculator = ({ onBMICalculated }) => {
     const formattedWeight = Number(weight);
     const formattedHeight = Number(height);
 
-    // API call to calculate BMI
-    fetch('http://localhost:8000/calculate/bmi', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ weight_kg: formattedWeight, height_cm: formattedHeight }),
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
+    fetchBmi(formattedWeight, formattedHeight)
       .then(data => {
         onBMICalculated(data.bmi);
       })
