@@ -76,10 +76,8 @@ async def login_for_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.post("/logout", tags=["classification"])
-async def logout(user: md.User, db: Session = Depends(get_db)):
-    # Invalidate the refresh token (TODO)
-    auth.invalidate_refresh_token(db, user)
+@app.post("/logout", tags=["authentication"])
+async def logout():
     return {"message": "User logged out successfully"}
 
 # calculation endpoints
