@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { registerUser } from '../api';
+import { useNavigate } from 'react-router-dom';
 
 const Registration = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [full_name, setFullName] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,7 +19,7 @@ const Registration = () => {
     try {
       const response = await registerUser(data);
       console.log('Registration successful:', response);
-      // Handle post-registration logic (e.g., redirect to login)
+      navigate('/');
     } catch (error) {
       console.error('Registration failed:', error);
     }
