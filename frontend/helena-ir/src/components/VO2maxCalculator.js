@@ -25,26 +25,22 @@ const VO2maxCalculator = ({ onVO2maxCalculated }) => {
   };
 
   function calculateVO2max() {
-
-    // Convert weight and height to numbers, if they are not already
     const formattedSpeed = Number(speed);
     const formattedAge = Number(age);
 
-    // API call to calculate VO2 max
-    fetchVo2max(formattedSpeed, formattedAge).then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      onVO2maxCalculated(data.vo2max);
+    const vo2maxData = {
+      speed_km_per_h: formattedSpeed,
+      age_yr: formattedAge
+    };
 
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert(`Error: ${error.message}`);
-    });
+    fetchVo2max(vo2maxData)
+      .then(response => {
+        onVO2maxCalculated(response);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert(`Error: ${error.message}`);
+      });
   }
   
   return (
@@ -67,7 +63,7 @@ const VO2maxCalculator = ({ onVO2maxCalculated }) => {
       />
       {validationErrors.age && <div className="error-message">{validationErrors.age}</div>}
 
-      <button className={`calcButton`} onClick={calculateVO2max} disabled={disableButton()}>Calculate VO2 max</button>
+      <button className={`calcButton`} onClick={calculateVO2max} disabled={disableButton()}>Calculate</button>
     </div>
   );
 };

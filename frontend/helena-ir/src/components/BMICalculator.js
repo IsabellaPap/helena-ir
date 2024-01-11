@@ -29,9 +29,14 @@ const BMICalculator = ({ onBMICalculated }) => {
     const formattedWeight = Number(weight);
     const formattedHeight = Number(height);
 
-    fetchBmi(formattedWeight, formattedHeight)
+    const bmiData = {
+      weight_kg: formattedWeight,
+      height_cm: formattedHeight
+    };
+
+    fetchBmi(bmiData)
       .then(data => {
-        onBMICalculated(data.bmi);
+        onBMICalculated(data);
       })
       .catch(error => {
         console.error('Error:', error);

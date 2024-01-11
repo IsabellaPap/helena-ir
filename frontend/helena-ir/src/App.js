@@ -13,7 +13,6 @@ const App = () => {
   const [gender, setGender] = useState(null);
   const [result, setResult] = useState(null);
 
-
   const handleGenderSelect = (selectedGender) => {
     setGender(selectedGender);
   };
@@ -21,7 +20,7 @@ const App = () => {
   const handleSubmit = async (answers) => {
     try {
       const scoreData = await calculateRiskScore(answers);
-      const score = Number(scoreData.risk_score);
+      const score = scoreData.risk_score;
 
       const classificationData = await classifyRiskScore(score, gender);
       const classification = classificationData.classification;
@@ -30,13 +29,7 @@ const App = () => {
     } catch (error) {
       console.error('Error:', error);
     }
-    
   };
-
-      // Set the result state to display score and classification
-
-
-      
 
   return (
     <Router>

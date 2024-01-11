@@ -53,14 +53,9 @@ const FMICalculator = ({ onFMICalculated }) => {
     }
 
     // API call to calculate FMI
-    fetchFmi(requestBody).then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
+    fetchFmi(requestBody)
     .then(data => {
-      onFMICalculated(data.fmi);
+      onFMICalculated(data);
     })
     .catch(error => {
       console.error('Error:', error);

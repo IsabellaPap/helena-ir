@@ -37,7 +37,7 @@ export const fetchFmi = async (data) => {
       throw new Error(result.error || 'Failed to fetch BMI');
     }
 
-    return result.bmi;
+    return result.fmi;
   } catch (error) {
     console.error('FMI calculation failed:', error);
     throw error;
@@ -58,7 +58,7 @@ export const fetchVo2max = async (data) => {
       throw new Error(result.error || 'Failed to fetch VO2 max');
     }
 
-    return result.bmi;
+    return result.vo2max;
   } catch (error) {
     console.error('VO2 max calculation failed:', error);
     throw error;
