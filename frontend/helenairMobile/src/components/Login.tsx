@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, TextInput, Button, StyleSheet} from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import {loginUser} from '../services/api';
 
 import {useNavigation} from '@react-navigation/native';
@@ -39,6 +39,12 @@ const Login = () => {
         secureTextEntry
       />
       <Button title="Login" onPress={handleSubmit} />
+      <View style={styles.registerContainer}>
+        <Text style={styles.registerText}>Don't have an account? </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.registerButton}>Register</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -56,6 +62,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     marginBottom: 10,
+  },
+  registerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 15,
+  },
+  registerText: {
+    fontSize: 16,
+  },
+  registerButton: {
+    fontSize: 16,
+    color: 'blue', // Color for the link
   },
 });
 
