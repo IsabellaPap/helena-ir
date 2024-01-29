@@ -13,11 +13,14 @@ import {createStackNavigator} from '@react-navigation/stack';
 import Login from './components/Login';
 import Home from './components/Home';
 import Register from './components/Register'
+import GenderSelection from './components/GenderSelection';
 
 export type AppStackParamList = {
   Login: undefined;
   Home: undefined;
   Register: undefined;
+  GenderSelection: undefined;
+  Questionnaire: { gender: string };
 };
 
 const Stack = createStackNavigator<AppStackParamList>();
@@ -28,6 +31,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="GenderSelection" component={GenderSelection} />
     </Stack.Navigator>
   );
 };
