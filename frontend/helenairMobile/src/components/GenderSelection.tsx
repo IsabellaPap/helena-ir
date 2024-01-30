@@ -49,7 +49,7 @@ const GenderSelection: React.FC<GenderSelectionProps> = ({ navigation }) => {
         </TouchableOpacity>
       </View>
       <TouchableOpacity
-        style={[styles.nextButton, styles.customColor]}
+        style={[styles.nextButton]}
         onPress={handleNextClick}
       >
         <Text style={styles.buttonText}>Next</Text>
@@ -66,22 +66,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   dnaStripTop: {
-    height: '20%',
-    width: '120%',
+    height: '50%',
+    width: '65%',
     resizeMode: 'contain',
+    position: 'absolute',
+    top:0,
+    left:0,
   },
   dnaStripBottom: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    height: '20%',
-    width: '42%',
-    resizeMode: 'cover',
-    zIndex: 10,
+    bottom: -180,
+    right: -100,
+    height: '50%',
+    width: '65%',
+    resizeMode: 'contain',
   },
   title: {
+    marginTop: 120,
     fontSize: 30,
     textAlign: 'center',
+    marginBottom: -60,
   },
   genderWord: {
     color: '#FF6B6B',
@@ -92,11 +96,14 @@ const styles = StyleSheet.create({
   genderButton: {
     borderColor: '#FF6B6B',
     borderWidth: 1,
-    marginVertical: '2%',
-    paddingVertical: '2%',
+    borderRadius: 25,
+    marginVertical: '5%',
+    paddingVertical: '5%',
   },
   buttonText: {
     textAlign: 'center',
+    color: '#0E194D',
+    fontSize: 18,
   },
   selected: {
     backgroundColor: '#FF6B6B',
@@ -105,11 +112,11 @@ const styles = StyleSheet.create({
   nextButton: {
     backgroundColor: '#FF6B6B',
     padding: 10,
-  },
-  customColor: {
-    // Additional styles if needed
-  },
-  // Add media query equivalent styles if needed
+    borderRadius: 25,
+    width: '70%',
+    marginBottom: 130,
+    marginTop: -40,
+  }
 });
 
 export default GenderSelection;
