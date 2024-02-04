@@ -40,7 +40,7 @@ const Question: React.FC<QuestionProps> = ({
   const wordsToHighlightArray = wordsToHighlight[jsonId] || [];
 
   return (
-    <View style={styles.container}>
+    <View>
       <Text style={styles.prompt}>
         {highlightWords(prompt, wordsToHighlightArray, signatureColor)}
       </Text>
@@ -56,16 +56,20 @@ const Question: React.FC<QuestionProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    // Styles for the container
-  },
   prompt: {
-    // Styles for the prompt Text
+    marginBottom: 10,
+    color: '#333',
+    fontSize: 28,
+    fontWeight: '800',
+    fontFamily: 'Manrope',
   },
   input: {
-    // Styles for the TextInput
+    borderWidth: 2,
+    borderRadius: 20,
+    padding: 15,
+    textAlign: 'center',
+    fontSize: 35,
   },
-  // ... other styles
 });
 
 export default Question;

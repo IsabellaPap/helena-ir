@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ImageBackground } from 'react-native';
 import Question from './Question';
 import BMICalculator from './BMICalculator';
 import FMICalculator from './FMICalculator';
@@ -15,8 +15,14 @@ type Answers = {
   [key: string]: any;
 };
 
+type SignatureImages = {
+  top: any;
+  bottom: any;
+}
+
 type SignatureStyle = {
   primary: string;
+  images: SignatureImages;
 };
 
 type SignatureStyles = {
@@ -27,16 +33,43 @@ type ValidationErrors = {
   [key: string]: string;
 };
 
+const bmiTop: any = require('../../assets/bmiTop.png');
+const bmiBottom: any = require('../../assets/bmiBottom.png');
+const vo2maxTop: any = require('../../assets/vo2maxTop.png');
+const vo2maxBottom: any = require('../../assets/vo2maxBottom.png');
+const tv_hoursTop: any = require('../../assets/tv_hoursTop.png');
+const tv_hoursBottom: any = require('../../assets/tv_hoursBottom.png');
+
 const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
   const { gender } = route.params;
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const signatureStyles: SignatureStyles = {
-    vo2max: { primary: '#9CDEA2' },
-    bmi: { primary: '#FF9255' },
-    fmi: { primary: '#FF9255' },
-    tv_hours: { primary: '#A49DEA' },
+    vo2max: { 
+      primary: '#9CDEA2', 
+      images:{
+        top: vo2maxTop,
+        bottom: vo2maxBottom
+      } },
+    bmi: { 
+      primary: '#FF9255', 
+      images: {
+        top: bmiTop,
+        bottom: bmiBottom
+      } },
+    fmi: { 
+      primary: '#FF9255', 
+      images: {
+        top: bmiTop,
+        bottom: bmiBottom
+      } },
+    tv_hours: { 
+      primary: '#A49DEA', 
+      images: {
+        top: tv_hoursTop,
+        bottom: tv_hoursBottom
+      }},
   };
 
   const questions = gender === 'male' ? [
@@ -52,22 +85,29 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
   const [showFMICalculator, setShowFMICalculator] = useState(false);
   const [showVO2maxCalculator, setShowVO2maxCalculator] = useState(false);
 
+  const [calculatedValue, setCalculatedValue] = useState('');
+
   const handleBMICalculated = (bmiValue: number) => {
     setAnswers({ ...answers, bmi: bmiValue });
     setValidationErrors({ ...validationErrors, bmi: '' });
+    setCalculatedValue(bmiValue.toString());
+
   };
 
   const handleFMICalculated = (fmiValue: number) => {
     setAnswers({ ...answers, fmi: fmiValue });
     setValidationErrors({ ...validationErrors, fmi: '' });
+    setCalculatedValue(fmiValue.toString());
   };
 
   const handleVO2maxCalculated = (vo2maxValue: number) => {
     setAnswers({ ...answers, vo2max: vo2maxValue });
     setValidationErrors({ ...validationErrors, vo2max: '' });
+    setCalculatedValue(vo2maxValue.toString());
   };
 
   const handleAnswerChange = (value: string, jsonId: string) => {
+    setCalculatedValue(value);
     const formattedValue = Number(value);
     let isValid = true;
     let errorMessage = '';
@@ -95,7 +135,7 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
       const classificationData = await classifyRiskScore(score, finalAnswers.gender);
       const classification = classificationData.classification;
 
-      //navigation.navigate('ResultsScreen', { score, classification });
+      navigation.navigate('Results', { score, classification });
     } catch (error) {
       console.error('Error:', error);
     }
@@ -103,9 +143,11 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
 
   const handleNext = async () => {
     if (currentQuestionIndex < questions.length - 1) {
+      setCalculatedValue('');
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       const finalAnswers = { ...answers, gender: gender };
+      setCalculatedValue('');
       try {
         await handleSubmit(finalAnswers);
       } catch (error) {
@@ -132,7 +174,7 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
       case 'vo2max':
         return showVO2maxCalculator ?
           <VO2maxCalculator onVO2maxCalculated={handleVO2maxCalculated} /> :
-          <TouchableOpacity onPress={() => setShowVO2maxCalculator(true)}>
+          <TouchableOpacity style={styles.calculateButton} onPress={() => setShowVO2maxCalculator(true)}>
             <Text>Don't know? Calculate</Text>
           </TouchableOpacity>;
       default:
@@ -145,9 +187,10 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
+      <ImageBackground source={currentStyle.images.top} style={styles.vo2max}/>
       <Question
         prompt={currentQuestion.prompt}
-        value={answers[currentQuestion.jsonId] || ''}
+        value={calculatedValue}
         onChange={(value) => handleAnswerChange(value, currentQuestion.jsonId)}
         jsonId={currentQuestion.jsonId}
         signatureColor={currentStyle.primary}
@@ -169,18 +212,38 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    // Styles for your main container
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF3E4',
+    padding: 20,
+    flex: 1,
   },
   error: {
-    // Styles for error messages
+    color:'#F31F1F',
+    margin: 10,
   },
   nextButton: {
-    // Styles for your 'Next' button
+    padding: 10,
+    borderRadius: 25,
+    width: '70%',
   },
   buttonText: {
-    // Styles for text within buttons
+    textAlign: 'center',
+    color: '#0E194D',
+    fontSize: 18,
   },
-  // ... other styles
+  calculateButton: {
+    alignSelf:'center',
+    margin: 10,
+  },
+  vo2max: {
+    height: '65%',
+    width: '55%',
+    resizeMode: 'contain',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  }
 });
 
 export default Questionnaire;

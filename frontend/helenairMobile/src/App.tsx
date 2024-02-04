@@ -15,6 +15,7 @@ import Home from './components/Home';
 import Register from './components/Register'
 import GenderSelection from './components/GenderSelection';
 import Questionnaire from './components/Questionnaire';
+import Results from './components/Results';
 
 export type AppStackParamList = {
   Login: undefined;
@@ -22,6 +23,7 @@ export type AppStackParamList = {
   Register: undefined;
   GenderSelection: undefined;
   Questionnaire: { gender: string };
+  Results: {score: number, classification: string};
 };
 
 const Stack = createStackNavigator<AppStackParamList>();
@@ -34,6 +36,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="GenderSelection" component={GenderSelection} />
       <Stack.Screen name="Questionnaire" component={Questionnaire} />
+      <Stack.Screen name="Results" component={Results} />
     </Stack.Navigator>
   );
 };
