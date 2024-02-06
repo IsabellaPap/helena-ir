@@ -72,40 +72,48 @@ const FMICalculator: React.FC<FMICalculatorProps> = ({ onFMICalculated }) => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Body Fat (%)"
-        value={bodyfat}
-        onChangeText={(text) => handleInputChange(text, 'bodyfat', true)}
-        keyboardType="numeric"
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Body Fat (%)"
+          value={bodyfat}
+          onChangeText={(text) => handleInputChange(text, 'bodyfat', true)}
+          keyboardType="numeric"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Weight (kg)"
+          value={weight}
+          onChangeText={(text) => handleInputChange(text, 'weight', true)}
+          keyboardType="numeric"
+        />
+      </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Fat Mass (kg)"
+          value={fatMass}
+          onChangeText={(text) => handleInputChange(text, 'fatmass', true)}
+          keyboardType="numeric"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Height (cm)"
+          value={height}
+          onChangeText={(text) => handleInputChange(text, 'height')}
+          keyboardType="numeric"
+        />
+      </View>
+
       {validationErrors.bodyfat !== '' && <Text style={styles.error}>{validationErrors.bodyfat}</Text>}
-      <TextInput
-        style={styles.input}
-        placeholder="Weight (kg)"
-        value={weight}
-        onChangeText={(text) => handleInputChange(text, 'weight', true)}
-        keyboardType="numeric"
-      />
+
       {validationErrors.weight !== '' && <Text style={styles.error}>{validationErrors.weight}</Text>}
-      <TextInput
-        style={styles.input}
-        placeholder="Fat Mass (kg)"
-        value={fatMass}
-        onChangeText={(text) => handleInputChange(text, 'fatmass', true)}
-        keyboardType="numeric"
-      />
+
       {validationErrors.fatmass !== '' && <Text style={styles.error}>{validationErrors.fatmass}</Text>}
-      <TextInput
-        style={styles.input}
-        placeholder="Height (cm)"
-        value={height}
-        onChangeText={(text) => handleInputChange(text, 'height')}
-        keyboardType="numeric"
-      />
+
       {validationErrors.height !== '' && <Text style={styles.error}>{validationErrors.height}</Text>}
       <TouchableOpacity onPress={calculateFMI} disabled={disableButton()} style={styles.button}>
-        <Text>Calculate FMI</Text>
+        <Text>Calculate</Text>
       </TouchableOpacity>
     </View>
   );
@@ -113,18 +121,31 @@ const FMICalculator: React.FC<FMICalculatorProps> = ({ onFMICalculated }) => {
 
 const styles = StyleSheet.create({
   container: {
-    // Styles for container
+    alignItems: 'center'
   },
   input: {
-    // Styles for TextInput
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 5,
+    margin: 10,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20
   },
   error: {
-    // Styles for error message
+    color: '#F31F1F',
+    margin: 10,
   },
   button: {
-    // Styles for TouchableOpacity
-  },
-  // ... other styles
+    borderRadius: 25,
+    borderColor: '#FF9255',
+    borderWidth: 2,
+    padding: 5,
+    marginBottom: 10
+  }
 });
 
 export default FMICalculator;

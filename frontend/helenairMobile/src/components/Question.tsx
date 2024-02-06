@@ -57,7 +57,7 @@ const Question: React.FC<QuestionProps> = ({
 
 const styles = StyleSheet.create({
   prompt: {
-    marginBottom: 10,
+    marginBottom: 25,
     color: '#333',
     fontSize: 28,
     fontWeight: '800',

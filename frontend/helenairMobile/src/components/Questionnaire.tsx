@@ -35,6 +35,8 @@ type ValidationErrors = {
 
 const bmiTop: any = require('../../assets/bmiTop.png');
 const bmiBottom: any = require('../../assets/bmiBottom.png');
+const fmiTop: any = require('../../assets/fmiTop.png');
+const fmiBottom: any = require('../../assets/fmiBottom.png');
 const vo2maxTop: any = require('../../assets/vo2maxTop.png');
 const vo2maxBottom: any = require('../../assets/vo2maxBottom.png');
 const tv_hoursTop: any = require('../../assets/tv_hoursTop.png');
@@ -61,8 +63,8 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
     fmi: { 
       primary: '#FF9255', 
       images: {
-        top: bmiTop,
-        bottom: bmiBottom
+        top: fmiTop,
+        bottom: fmiBottom
       } },
     tv_hours: { 
       primary: '#A49DEA', 
@@ -162,13 +164,13 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
       case 'bmi':
         return showBMICalculator ?
           <BMICalculator onBMICalculated={handleBMICalculated} /> :
-          <TouchableOpacity onPress={() => setShowBMICalculator(true)}>
+          <TouchableOpacity style={styles.calculateButton} onPress={() => setShowBMICalculator(true)}>
             <Text>Don't know? Calculate</Text>
           </TouchableOpacity>;
       case 'fmi':
         return showFMICalculator ?
           <FMICalculator onFMICalculated={handleFMICalculated} /> :
-          <TouchableOpacity onPress={() => setShowFMICalculator(true)}>
+          <TouchableOpacity style={styles.calculateButton} onPress={() => setShowFMICalculator(true)}>
             <Text>Don't know? Calculate</Text>
           </TouchableOpacity>;
       case 'vo2max':
@@ -185,9 +187,14 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
   const currentQuestion = questions[currentQuestionIndex];
   const currentStyle = signatureStyles[currentQuestion.jsonId];
 
+  const selectedStyleTop: any = styles[`${currentQuestion.jsonId}Top` as keyof typeof styles];
+  const selectedStyleBottom: any = styles[`${currentQuestion.jsonId}Bottom` as keyof typeof styles];
+
   return (
     <View style={styles.container}>
-      <ImageBackground source={currentStyle.images.top} style={styles.vo2max}/>
+      <View style={styles.topContainer}>
+        <ImageBackground source={currentStyle.images.top} style={selectedStyleTop}/>
+      </View>
       <Question
         prompt={currentQuestion.prompt}
         value={calculatedValue}
@@ -206,6 +213,9 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
       >
         <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
+      <View style={styles.bottomContainer}>
+        <ImageBackground source={currentStyle.images.bottom} style={selectedStyleBottom} />
+      </View>
     </View>
   );
 };
@@ -215,7 +225,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFF3E4',
-    padding: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
     flex: 1,
   },
   error: {
@@ -223,6 +234,7 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   nextButton: {
+    marginTop: 10,
     padding: 10,
     borderRadius: 25,
     width: '70%',
@@ -236,13 +248,59 @@ const styles = StyleSheet.create({
     alignSelf:'center',
     margin: 10,
   },
-  vo2max: {
-    height: '65%',
-    width: '55%',
-    resizeMode: 'contain',
+  topContainer: {
     position: 'absolute',
     top: 0,
+    right: 0,
+    width: '35%',
+    margin: 0,
+    padding: 0,
+  },
+  bottomContainer: {
+    position: 'absolute',
+    bottom: 0,
     left: 0,
+    width: '35%'
+  },
+  vo2maxTop: {
+    height: 250,
+    width: '100%',
+    resizeMode: 'contain',
+  },
+  vo2maxBottom: {
+    height: 220,
+    width: '100%',
+    resizeMode: 'contain',
+  },
+  bmiTop: {
+    height: 185,
+    width: '100%',
+    resizeMode: 'contain',
+  },
+  fmiTop: {
+    height: 185,
+    width: '100%',
+    resizeMode: 'contain',
+  },
+  bmiBottom: {
+    height: 160,
+    width: '100%',
+    resizeMode: 'contain',
+  }, 
+  fmiBottom: {
+    height: 160,
+    width: '100%',
+    resizeMode: 'contain',
+  },
+  tv_hoursTop: {
+    height: 160,
+    width: '100%',
+    resizeMode: 'contain',
+  },
+  tv_hoursBottom: {
+    height: 180,
+    width: '100%',
+    resizeMode: 'contain',
   }
 });
 

@@ -50,26 +50,28 @@ const VO2maxCalculator: React.FC<VO2maxCalculatorProps> = ({ onVO2maxCalculated 
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Speed (k/h)"
-        value={speed.toString()}
-        onChangeText={(text) => handleInputChange(text, 'speed')}
-        keyboardType="numeric"
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Speed (k/h)"
+          value={speed.toString()}
+          onChangeText={(text) => handleInputChange(text, 'speed')}
+          keyboardType="numeric"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Age (years)"
+          value={age.toString()}
+          onChangeText={(text) => handleInputChange(text, 'age')}
+          keyboardType="numeric"
+        />
+      </View>
       {validationErrors.speed !== '' && <Text style={styles.error}>{validationErrors.speed}</Text>}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Age (years)"
-        value={age.toString()}
-        onChangeText={(text) => handleInputChange(text, 'age')}
-        keyboardType="numeric"
-      />
       {validationErrors.age !== '' && <Text style={styles.error}>{validationErrors.age}</Text>}
-
+      
       <TouchableOpacity onPress={calculateVO2max} disabled={disableButton()} style={styles.button}>
-        <Text>Calculate VO2 Max</Text>
+        <Text>Calculate</Text>
       </TouchableOpacity>
     </View>
   );
@@ -77,18 +79,31 @@ const VO2maxCalculator: React.FC<VO2maxCalculatorProps> = ({ onVO2maxCalculated 
 
 const styles = StyleSheet.create({
   container: {
-    // Styles for container
+    alignItems: 'center'
   },
   input: {
-    // Styles for TextInput
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 5,
+    margin: 10,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20
   },
   error: {
-    // Styles for error message
+    color: '#F31F1F',
+    margin: 10,
   },
   button: {
-    // Styles for TouchableOpacity
-  },
-  // ... other styles
+    borderRadius: 25,
+    borderColor: '#9CDEA2',
+    borderWidth: 2,
+    padding: 5,
+    marginBottom: 10
+  }
 });
 
 export default VO2maxCalculator;

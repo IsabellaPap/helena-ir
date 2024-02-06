@@ -49,26 +49,28 @@ const BMICalculator: React.FC<BMICalculatorProps> = ({ onBMICalculated }) => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Weight (kg)"
-        value={weight}
-        onChangeText={(text) => handleInputChange(text, 'weight')}
-        keyboardType="numeric"
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Weight (kg)"
+          value={weight}
+          onChangeText={(text) => handleInputChange(text, 'weight')}
+          keyboardType="numeric"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Height (cm)"
+          value={height}
+          onChangeText={(text) => handleInputChange(text, 'height')}
+          keyboardType="numeric"
+        />
+      </View>
       {validationErrors.weight !== '' && <Text style={styles.error}>{validationErrors.weight}</Text>}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Height (cm)"
-        value={height}
-        onChangeText={(text) => handleInputChange(text, 'height')}
-        keyboardType="numeric"
-      />
       {validationErrors.height !== '' && <Text style={styles.error}>{validationErrors.height}</Text>}
 
       <TouchableOpacity onPress={calculateBMI} disabled={disableButton()} style={styles.button}>
-        <Text>Calculate BMI</Text>
+        <Text>Calculate</Text>
       </TouchableOpacity>
     </View>
   );
@@ -76,16 +78,30 @@ const BMICalculator: React.FC<BMICalculatorProps> = ({ onBMICalculated }) => {
 
 const styles = StyleSheet.create({
   container: {
-    // Styles for the container (flexbox, padding, etc.)
+    alignItems: 'center'
   },
   input: {
-    // Styles for the TextInput components
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 5,
+    margin: 10,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20
   },
   error: {
-    // Styles for the error Text components
+    color: '#F31F1F',
+    margin: 10,
   },
   button: {
-    // Styles for the TouchableOpacity button
+    borderRadius: 25,
+    borderColor: '#FF9255',
+    borderWidth: 2,
+    padding: 5,
+    marginBottom: 10
   }
 });
 
