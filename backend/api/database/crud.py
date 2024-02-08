@@ -35,3 +35,9 @@ def get_user(db: Session, email: str) -> Optional[models.UserBase]:
             disabled=db_user.disabled
         )
     return None
+
+def create_questionnaire_result(db:Session, result:models.QuestionnaireResultCreate):
+    db_result = schemas.QuestionnaireResult(user_id = result.user_id, questionnaire_id = result.questionnaire_id, vo2max = result.vo2max, bmi = result.bmi, fmi = result.fmi, tv_hours = result.tv_hours, score = result.score, classification = result.classification )
+    db.add(db_result)
+    db.commit()
+    return {"message": "Questionnaire results submitted successfully"}

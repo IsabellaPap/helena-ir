@@ -12,6 +12,7 @@ from .services import auth
 from .services import services as srv
 from .database.database import SessionLocal
 from .database.crud import create_user
+from .database.crud import create_questionnaire_result
 
 tags_metadata = [
     {
@@ -121,9 +122,6 @@ async def calculate_risk_score_endpoint(input_data: md.RiskScoreInput) -> Dict[s
         raise HTTPException(status_code=400, detail=e.detail)
 
     
-
-# classification endpoints
-
 @app.post("/classify/risk-score",tags=["classification"])
 async def classify_risk_score_endpoint(input_data: md.RiskClassificationInput) -> Dict[str,str]:
     try: 
@@ -134,3 +132,6 @@ async def classify_risk_score_endpoint(input_data: md.RiskClassificationInput) -
     except InvalidInputError as e:
         raise HTTPException(status_code=422, detail=e.detail)
     
+@app.post("/submit_questonnaire")
+def submit_questionnaire(result: md.QuestionnaireResultCreate, db: Session = Depends(get_db)):
+    return create_questionnaire_result(db=db, result=result)

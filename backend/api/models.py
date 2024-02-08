@@ -20,6 +20,15 @@ class UserBase(BaseModel):
     full_name: str
     disabled: bool
 
+class QuestionnaireResultCreate(BaseModel):
+    user_id: str
+    questionnaire_id: str
+    vo2max: float
+    bmi: Optional[float]
+    fmi: Optional[float]
+    tv_hours: Optional[float]
+    score: int
+    classification: str
 
 # enums
 class Gender(str, Enum):
