@@ -1,8 +1,10 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from fastapi import FastAPI, HTTPException, Depends, status
-from typing import Dict, Annotated
+from typing import Dict, Annotated, Optional
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from pydantic import model_serializer
 from sqlalchemy.orm import Session
 
 import logging
@@ -11,8 +13,10 @@ from . import models as md
 from .services import auth
 from .services import services as srv
 from .database.database import SessionLocal
-from .database.crud import create_user
-from .database.crud import create_questionnaire_result
+from .database.crud import create_user, get_user, create_questionnaire_result
+
+import os
+from dotenv import load_dotenv
 
 tags_metadata = [
     {
@@ -44,12 +48,75 @@ app.add_middleware(
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+
+# DB dependency
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+# JWT authentication
+        
+def get_user_base(db: Session, email: str) -> Optional[md.UserBase]:
+    """ Finds a user in the database based on their email. Takes the database and email
+     as input, and returns the user information as an instance of the UserInDB class."""
+    db_user = get_user(db=db, email=email)
+    if db_user:
+        return md.UserBase(
+            email=db_user.email, 
+            full_name=db_user.full_name, 
+            disabled=db_user.disabled
+        )
+    return None
+    
+async def get_current_user(db: Session, token: Annotated[str, Depends(oauth2_scheme)]) -> md.UserBase:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        token_data = md.TokenData(email=email)
+    except JWTError:
+        raise credentials_exception
+    user = get_user_base(db, email=token_data.email)
+    if user is None:
+        raise credentials_exception
+    return user
+
+def authenticate_user(db: Session, email: str, password: str) -> Optional[md.UserBase]:
+    """ Authenticates a user from their email and password combination. Returns True if the 
+    credentials are valid and False if they are invalid, or if the user doesn't exist. """
+    user = get_user(db, email)
+    if not user or not auth.verify_password(password, user.hashed_password):
+        return None
+    return user
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """ Creates an access token from the provided data. Sets the expiration time based on the input. """
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+# Endpoints
 
 @app.get("/")
 def read_root():
@@ -64,15 +131,15 @@ async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db)
 ):
-    user = auth.authenticate_user(db, form_data.username, form_data.password)  # Authenticate against DB
+    user = authenticate_user(db, form_data.username, form_data.password)  # Authenticate against DB
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
@@ -80,6 +147,11 @@ async def login_for_access_token(
 @app.post("/logout", tags=["authentication"])
 async def logout():
     return {"message": "User logged out successfully"}
+
+@app.post("/questonnaire_result/create")
+async def submit_questionnaire(result: md.QuestionnaireResultCreate, token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
+    current_user = await get_current_user(db, token)
+    return create_questionnaire_result(db=db, user_email=current_user.email, result=result)
 
 # calculation endpoints
 @app.post("/calculate/bmi", tags=["calculation"])
@@ -132,6 +204,3 @@ async def classify_risk_score_endpoint(input_data: md.RiskClassificationInput) -
     except InvalidInputError as e:
         raise HTTPException(status_code=422, detail=e.detail)
     
-@app.post("/submit_questonnaire")
-def submit_questionnaire(result: md.QuestionnaireResultCreate, db: Session = Depends(get_db)):
-    return create_questionnaire_result(db=db, result=result)

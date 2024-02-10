@@ -17,7 +17,7 @@ def create_user(db: Session, user: models.UserCreate):
     )
     return user_pydantic
 
-def get_user(db: Session, email: str) -> Optional[models.UserBase]:
+def get_user(db: Session, email: str) -> Optional[schemas.User]:
     """Finds a user in the database based on their email.
 
     Args:
@@ -25,19 +25,28 @@ def get_user(db: Session, email: str) -> Optional[models.UserBase]:
         email (str): The email of the user to find.
 
     Returns:
-        Optional[models.User]: An instance of the User model or None if not found.
+        Optional[schemas.User]: An instance of the User model or None if not found.
     """
     db_user = db.query(schemas.User).filter(schemas.User.email == email).first()
     if db_user:
-        return models.UserBase(
-            email=db_user.email, 
-            full_name=db_user.full_name, 
-            disabled=db_user.disabled
-        )
+        return db_user
     return None
 
-def create_questionnaire_result(db:Session, result:models.QuestionnaireResultCreate):
-    db_result = schemas.QuestionnaireResult(user_id = result.user_id, questionnaire_id = result.questionnaire_id, vo2max = result.vo2max, bmi = result.bmi, fmi = result.fmi, tv_hours = result.tv_hours, score = result.score, classification = result.classification )
+def create_questionnaire_result(db: Session, user_email: str, result:models.QuestionnaireResultCreate):
+    user = get_user(db, user_email)
+    db_result = schemas.QuestionnaireResult(user_id = user.id, gender= result.gender,questionnaire_id = result.questionnaire_id, vo2max = result.vo2max, bmi = result.bmi, fmi = result.fmi, tv_hours = result.tv_hours, score = result.score, classification = result.classification )
     db.add(db_result)
     db.commit()
-    return {"message": "Questionnaire results submitted successfully"}
+    db.refresh(db_result)
+    questionnaire_result = models.QuestionnaireResultResponse(
+        user_id=user_email,
+        questionnaire_id=result.questionnaire_id,
+        gender = result.gender, 
+        vo2max = result.vo2max, 
+        bmi = result.bmi, 
+        fmi = result.fmi, 
+        tv_hours = result.tv_hours, 
+        score = result.score, 
+        classification = result.classification
+    )
+    return questionnaire_result

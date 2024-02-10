@@ -1,5 +1,6 @@
-from sqlalchemy import JSON, Column, Integer, Numeric, String, Boolean, func, DateTime
+from sqlalchemy import JSON, Column, ForeignKey, Integer, Numeric, String, Boolean, func, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -12,12 +13,16 @@ class User(Base):
     disabled = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
 
+    questionnaire_results = relationship('QuestionnaireResult', back_populates='user')
+
+
 class QuestionnaireResult(Base):
     __tablename__ = 'questionnaire_results'
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, index=True)
-    questionnaire_id = Column(Integer, unique=True, index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    questionnaire_id = Column(String, unique=True, index=True, nullable=False)
+    gender = Column(String, nullable=False)
     vo2max = Column(Numeric, nullable=False)
     bmi = Column(Numeric)
     fmi = Column(Numeric)
@@ -25,3 +30,5 @@ class QuestionnaireResult(Base):
     score = Column(Integer, nullable=False)
     classification = Column(String, nullable=False)
     timestamp = Column(DateTime, server_default=func.now())
+
+    user = relationship('User', back_populates='questionnaire_results')
