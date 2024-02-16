@@ -1,5 +1,7 @@
+import csv
 from datetime import timedelta, datetime
-from fastapi import FastAPI, HTTPException, Depends, status
+from io import StringIO
+from fastapi import FastAPI, HTTPException, Depends, Response, status
 from typing import Dict, Annotated, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -13,7 +15,7 @@ from . import models as md
 from .services import auth
 from .services import services as srv
 from .database.database import SessionLocal
-from .database.crud import create_user, get_user, create_questionnaire_result
+from .database.crud import create_user, get_user, create_questionnaire_result, get_questionnaire_result_by_user
 
 import os
 from dotenv import load_dotenv
@@ -39,7 +41,7 @@ app = FastAPI(openapi_tags=tags_metadata)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://192.168.1.104:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -151,8 +153,41 @@ async def logout():
 @app.post("/questonnaire_result/create")
 async def submit_questionnaire(result: md.QuestionnaireResultCreate, token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
     current_user = await get_current_user(db, token)
+    logger.info(f"Current user: {current_user}")
     return create_questionnaire_result(db=db, user_email=current_user.email, result=result)
 
+@app.get("/download_questionnaire")
+async def download_questionnaire(response: Response, token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
+    try:
+        current_user = await get_current_user(db, token)
+        logger.info(f"Current user: {current_user}")
+        results = get_questionnaire_result_by_user(db=db, user_email=current_user.email)
+
+        stream = StringIO()
+
+        writer = csv.DictWriter(stream, fieldnames=["questionnaire_id", "gender", "vo2max", "bmi", "fmi", "tv_hours", "score", "classification", "timestamp"])
+        writer.writeheader()
+        for result in results:
+            writer.writerow({"questionnaire_id": result.questionnaire_id,
+                            "gender": result.gender,
+                            "vo2max": result.vo2max,
+                            "bmi": result.bmi if result.bmi is not None else "",
+                            "fmi": result.fmi if result.fmi is not None else "",
+                            "tv_hours": result.tv_hours if result.tv_hours is not None else "",
+                            "score": result.score,
+                            "classification": result.classification,
+                            "timestamp": result.timestamp})
+        
+        response.headers["Content-Disposition"] = "attachment; filename=questionnaire_results.csv"
+        response.headers["Content-Type"] = "text/csv"
+        response.body = stream.getvalue().encode("utf-8")
+        logger.info(f"Body: {response.body}")
+
+        return response
+    except Exception as e:
+        logger.exception(f"An error occurred while processing the download_questionnaire request: {e} ")
+        raise HTTPException(status_code=500, detail="Internal server error occurred while processing the request")
+    
 # calculation endpoints
 @app.post("/calculate/bmi", tags=["calculation"])
 async def calculate_bmi_endpoint(input_data: md.BmiInput) -> Dict[str, float]:

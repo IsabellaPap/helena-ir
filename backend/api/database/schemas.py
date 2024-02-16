@@ -1,4 +1,4 @@
-from sqlalchemy import JSON, Column, ForeignKey, Integer, Numeric, String, Boolean, func, DateTime
+from sqlalchemy import JSON, Column, ForeignKey, Integer, Numeric, String, Boolean, UniqueConstraint, func, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -21,7 +21,7 @@ class QuestionnaireResult(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
-    questionnaire_id = Column(String, unique=True, index=True, nullable=False)
+    questionnaire_id = Column(String, index=True, nullable=False)
     gender = Column(String, nullable=False)
     vo2max = Column(Numeric, nullable=False)
     bmi = Column(Numeric)
@@ -32,3 +32,7 @@ class QuestionnaireResult(Base):
     timestamp = Column(DateTime, server_default=func.now())
 
     user = relationship('User', back_populates='questionnaire_results')
+
+    __table_args__ = (
+        UniqueConstraint('questionnaire_id', 'user_id'),
+    )

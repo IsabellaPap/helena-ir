@@ -1,3 +1,7 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
+import RNFetchBlob from 'rn-fetch-blob';
+
 const API_BASE_URL = 'http://10.0.2.2:8000';
 
 export const fetchBmi = async (data: any) => {
@@ -119,7 +123,7 @@ export const registerUser = async (userData: any) => {
 export const loginUser = async (credentials: any) => {
   try {
     const params = new URLSearchParams(credentials).toString();
-
+    const data: {[key: string]: string} = {}
     const response = await fetch(`${API_BASE_URL}/token`, {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -136,3 +140,47 @@ export const loginUser = async (credentials: any) => {
     throw error;
   }
 };
+
+export const submitQuestionnaireResult = async (answers: any) => {
+  try {
+    const jwtToken = await AsyncStorage.getItem('jwtToken');
+    console.log('Request Body:', JSON.stringify(answers));
+
+    const response = await fetch(`${API_BASE_URL}/questonnaire_result/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${jwtToken}` },
+      body: JSON.stringify(answers),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error during risk score calculation:', error);
+    throw error;
+  }
+}
+
+export const downloadResults = async () => {
+  const jwtToken = await AsyncStorage.getItem('jwtToken');
+  try {
+    const response = await fetch(`${API_BASE_URL}/download_questionnaire`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'text/csv', 'Authorization': `Bearer ${jwtToken}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const csvData = await response.text();
+    const path = `${RNFetchBlob.fs.dirs.DownloadDir}/questionnaire_results.csv`
+    await RNFetchBlob.fs.writeFile(path, csvData);
+    Alert.alert('File downloaded successfully')
+
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    Alert.alert('Error downloading file');
+  }
+}

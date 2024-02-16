@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AppStackParamList } from '../App';
+import { downloadResults } from '../services/api';
 
 const healthBarImg = require('../../assets/health-bar.png');
 const peopleImg = require('../../assets/people.png');
@@ -11,8 +12,12 @@ const HomePage = () => {
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
   const handleStartClick = () => {
-    navigation.navigate('GenderSelection');
+    navigation.navigate('QuestionnaireID');
   };
+
+  const onDownload = async () => {
+    await downloadResults();
+  }
 
   return (
     <View style={styles.container}>
@@ -24,6 +29,9 @@ const HomePage = () => {
       </Text>
       <TouchableOpacity style={styles.startButton} onPress={handleStartClick}>
         <Text style={styles.startButtonText}>Start</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={{marginTop: 10}} onPress={onDownload}>
+        <Text style={{borderBottomWidth: 1}}>Donwload results as csv</Text>
       </TouchableOpacity>
     </View>
   );

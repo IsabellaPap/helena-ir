@@ -5,6 +5,7 @@ import {loginUser} from '../services/api';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {AppStackParamList} from '../App';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -16,6 +17,7 @@ const Login = () => {
     try {
       const response = await loginUser(data);
       console.log('Login successful:', response);
+      AsyncStorage.setItem('jwtToken', response['access_token']);
       navigation.navigate('Home');
     } catch (error) {
       console.error('Login failed:', error);

@@ -16,13 +16,15 @@ import Register from './components/Register'
 import GenderSelection from './components/GenderSelection';
 import Questionnaire from './components/Questionnaire';
 import Results from './components/Results';
+import QuestionnaireID from './components/Questionnaire_ID';
 
 export type AppStackParamList = {
   Login: undefined;
   Home: undefined;
   Register: undefined;
-  GenderSelection: undefined;
-  Questionnaire: { gender: string };
+  QuestionnaireID: undefined;
+  GenderSelection: { questionnaireID: string };
+  Questionnaire: { gender: string, questionnaireID: string };
   Results: {score: number, classification: string};
 };
 
@@ -34,6 +36,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="QuestionnaireID" component={QuestionnaireID} />
       <Stack.Screen name="GenderSelection" component={GenderSelection} />
       <Stack.Screen name="Questionnaire" component={Questionnaire} />
       <Stack.Screen name="Results" component={Results} />

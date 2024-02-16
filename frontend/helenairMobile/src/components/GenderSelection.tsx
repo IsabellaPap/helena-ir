@@ -9,8 +9,9 @@ const dnaBottomImg = require('../../assets/dna.png');
 type GenderSelectionProps = StackScreenProps<AppStackParamList, 'GenderSelection'>;
 
 
-const GenderSelection: React.FC<GenderSelectionProps> = ({ navigation }) => {
+const GenderSelection: React.FC<GenderSelectionProps> = ({ route, navigation }) => {
   const [selectedGender, setSelectedGender] = useState('');
+  const { questionnaireID } = route.params;
 
   const handleGenderSelect = (gender: string) => {
     setSelectedGender(gender);
@@ -18,7 +19,7 @@ const GenderSelection: React.FC<GenderSelectionProps> = ({ navigation }) => {
 
   const handleNextClick = () => {
     if (selectedGender) {
-      navigation.navigate('Questionnaire', { gender: selectedGender });
+      navigation.navigate('Questionnaire', { gender: selectedGender, questionnaireID: questionnaireID });
     }
   };
 

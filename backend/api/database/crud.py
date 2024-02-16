@@ -50,3 +50,8 @@ def create_questionnaire_result(db: Session, user_email: str, result:models.Ques
         classification = result.classification
     )
     return questionnaire_result
+
+def get_questionnaire_result_by_user(db: Session, user_email: str):
+    user = get_user(db, user_email)
+    results = db.query(schemas.QuestionnaireResult).filter(schemas.QuestionnaireResult.user_id == user.id).all()
+    return results

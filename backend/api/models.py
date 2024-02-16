@@ -24,23 +24,23 @@ class QuestionnaireResultCreate(BaseModel):
     questionnaire_id: str
     gender: str
     vo2max: float
-    bmi: Optional[float]
-    fmi: Optional[float]
-    tv_hours: Optional[float]
     score: int
     classification: str
+    bmi: Optional[float] = None
+    fmi: Optional[float] = None
+    tv_hours: Optional[float] = None
 
 class QuestionnaireResultResponse(BaseModel):
     user_id: str
     questionnaire_id: str
     gender: str
     vo2max: float
-    bmi: Optional[float]
-    fmi: Optional[float]
-    tv_hours: Optional[float]
     score: int
     classification: str
-
+    bmi: Optional[float] = None
+    fmi: Optional[float] = None
+    tv_hours: Optional[float] = None
+    
 # enums
 class Gender(str, Enum):
     male = "male"

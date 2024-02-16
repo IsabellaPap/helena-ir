@@ -7,7 +7,7 @@ import VO2maxCalculator from './VO2maxCalculator';
 import { StackScreenProps } from '@react-navigation/stack';
 import { AppStackParamList } from '../App';
 import { validateInput } from './ValidationUtil';
-import { calculateRiskScore, classifyRiskScore } from '../services/api';
+import { calculateRiskScore, classifyRiskScore, submitQuestionnaireResult } from '../services/api';
 
 type QuestionnaireProps = StackScreenProps<AppStackParamList, 'Questionnaire'>;
 
@@ -43,7 +43,7 @@ const tv_hoursTop: any = require('../../assets/tv_hoursTop.png');
 const tv_hoursBottom: any = require('../../assets/tv_hoursBottom.png');
 
 const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
-  const { gender } = route.params;
+  const { gender, questionnaireID } = route.params;
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
@@ -137,6 +137,8 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ route, navigation }) => {
       const classificationData = await classifyRiskScore(score, finalAnswers.gender);
       const classification = classificationData.classification;
 
+      const saveAnswers = {...finalAnswers, questionnaire_id: questionnaireID, score: score, classification: classification }
+      const submitted_result = await  submitQuestionnaireResult(saveAnswers)
       navigation.navigate('Results', { score, classification });
     } catch (error) {
       console.error('Error:', error);
