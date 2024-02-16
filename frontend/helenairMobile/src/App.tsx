@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StatusBar,
@@ -17,6 +17,7 @@ import GenderSelection from './components/GenderSelection';
 import Questionnaire from './components/Questionnaire';
 import Results from './components/Results';
 import QuestionnaireID from './components/Questionnaire_ID';
+import { checkUserAuthentication } from './services/api';
 
 export type AppStackParamList = {
   Login: undefined;
@@ -30,16 +31,38 @@ export type AppStackParamList = {
 
 const Stack = createStackNavigator<AppStackParamList>();
 
+
 const AppNavigator = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const fetchUserAuthentication = async () => {
+      const authenticated = await checkUserAuthentication();
+      setIsLoggedIn(authenticated);
+    };
+
+    fetchUserAuthentication();
+  }, []);
+
+  if (isLoggedIn === null) {
+    // Still loading, can render a loading indicator here if needed
+    return null;
+  }
+
   return (
     <Stack.Navigator>
-      <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="Register" component={Register} />
-      <Stack.Screen name="QuestionnaireID" component={QuestionnaireID} />
-      <Stack.Screen name="GenderSelection" component={GenderSelection} />
-      <Stack.Screen name="Questionnaire" component={Questionnaire} />
-      <Stack.Screen name="Results" component={Results} />
+      {isLoggedIn ? (
+        <>
+          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="QuestionnaireID" component={QuestionnaireID} />
+          <Stack.Screen name="GenderSelection" component={GenderSelection} />
+          <Stack.Screen name="Questionnaire" component={Questionnaire} />
+          <Stack.Screen name="Results" component={Results} />
+        </>
+      ) : (
+        <Stack.Screen name="Login" component={Login} />
+      )}
     </Stack.Navigator>
   );
 };

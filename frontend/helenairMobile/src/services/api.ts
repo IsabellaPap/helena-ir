@@ -4,6 +4,16 @@ import RNFetchBlob from 'rn-fetch-blob';
 
 const API_BASE_URL = 'http://10.0.2.2:8000';
 
+export const checkUserAuthentication = async() => {
+  try {
+    const token = await AsyncStorage.getItem('jwtToken');
+
+    return token !== null;
+  } catch (error) {
+    console.error('Error checking user authentication:', error);
+    return false;
+  }
+}
 export const fetchBmi = async (data: any) => {
   try {
     const response = await fetch(`${API_BASE_URL}/calculate/bmi`, {
