@@ -7,7 +7,11 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {AppStackParamList} from '../App';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Login = () => {
+interface LoginProps {
+  handleLogin: () => void;
+}
+
+const Login: React.FC<LoginProps> = ({ handleLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
@@ -18,7 +22,7 @@ const Login = () => {
       const response = await loginUser(data);
       console.log('Login successful:', response);
       AsyncStorage.setItem('jwtToken', response['access_token']);
-      navigation.navigate('Home');
+      handleLogin();
     } catch (error) {
       console.error('Login failed:', error);
     }

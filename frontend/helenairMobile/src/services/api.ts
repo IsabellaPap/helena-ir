@@ -14,6 +14,7 @@ export const checkUserAuthentication = async() => {
     return false;
   }
 }
+
 export const fetchBmi = async (data: any) => {
   try {
     const response = await fetch(`${API_BASE_URL}/calculate/bmi`, {

@@ -18,6 +18,7 @@ import Questionnaire from './components/Questionnaire';
 import Results from './components/Results';
 import QuestionnaireID from './components/Questionnaire_ID';
 import { checkUserAuthentication } from './services/api';
+import Logout from './components/Logout';
 
 export type AppStackParamList = {
   Login: undefined;
@@ -27,41 +28,36 @@ export type AppStackParamList = {
   GenderSelection: { questionnaireID: string };
   Questionnaire: { gender: string, questionnaireID: string };
   Results: {score: number, classification: string};
+  Logout: undefined;
 };
 
 const Stack = createStackNavigator<AppStackParamList>();
 
+interface AppNavigatorProps {
+  isLoggedIn: boolean | null;
+  handleLogout: () => void;
+  handleLogin: () => void;
+}
 
-const AppNavigator = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const fetchUserAuthentication = async () => {
-      const authenticated = await checkUserAuthentication();
-      setIsLoggedIn(authenticated);
-    };
-
-    fetchUserAuthentication();
-  }, []);
-
-  if (isLoggedIn === null) {
-    // Still loading, can render a loading indicator here if needed
-    return null;
-  }
-
+const AppNavigator: React.FC<AppNavigatorProps> = ({ isLoggedIn, handleLogout, handleLogin }) => {
+  
   return (
     <Stack.Navigator>
       {isLoggedIn ? (
         <>
           <Stack.Screen name="Home" component={Home} />
-          <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="QuestionnaireID" component={QuestionnaireID} />
           <Stack.Screen name="GenderSelection" component={GenderSelection} />
           <Stack.Screen name="Questionnaire" component={Questionnaire} />
           <Stack.Screen name="Results" component={Results} />
+          <Stack.Screen name="Logout">
+            {props => <Logout {...props} handleLogout={handleLogout} />}
+          </Stack.Screen>
         </>
       ) : (
-        <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Login">
+            {props => <Login {...props} handleLogin={handleLogin} />}
+          </Stack.Screen>
       )}
     </Stack.Navigator>
   );
@@ -72,6 +68,26 @@ function App(): React.JSX.Element {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  useEffect(() => {
+
+    const fetchUserAuthentication = async () => {
+      const authenticated = await checkUserAuthentication();
+      setIsLoggedIn(authenticated);
+    };
+
+    fetchUserAuthentication();
+  }, []);
+
 
   return (
     <SafeAreaView style={[styles.container, backgroundStyle]}>
@@ -80,8 +96,9 @@ function App(): React.JSX.Element {
         backgroundColor={backgroundStyle.backgroundColor}
       />
       <NavigationContainer>
-        <AppNavigator />
+        <AppNavigator isLoggedIn={isLoggedIn} handleLogout={handleLogout} handleLogin={handleLogin} />
       </NavigationContainer>
+      {isLoggedIn ? <Logout handleLogout={handleLogout} /> : null}
     </SafeAreaView>
   );
 }

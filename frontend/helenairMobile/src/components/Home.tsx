@@ -30,9 +30,9 @@ const HomePage = () => {
       <TouchableOpacity style={styles.startButton} onPress={handleStartClick}>
         <Text style={styles.startButtonText}>Start</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={{marginTop: 10}} onPress={onDownload}>
+      {/* <TouchableOpacity style={{marginTop: 10}} onPress={onDownload}>
         <Text style={{borderBottomWidth: 1}}>Donwload results as csv</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 };
